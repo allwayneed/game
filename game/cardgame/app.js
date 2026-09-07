@@ -391,23 +391,49 @@ function fallbackReveal(heroEl) {
   $("overlay").classList.add("soviet");
 }
 
-function resetConfirmReveal() {
-  $("cards-area").classList.remove("confirm-active");
-  document.querySelectorAll(".confirm-hero").forEach(el => {
-    el.classList.remove("confirm-hero");
-    el.style.position = ""; el.style.left = ""; el.style.top = "";
-    el.style.width = ""; el.style.height = ""; el.style.margin = "";
-    el.style.zIndex = ""; el.style.transition = ""; el.style.opacity = "";
-  });
-  const v = $("confirm-video");
-  if (v) { try { v.pause(); } catch (e) {} v.classList.add("hidden"); }
+// 確定演出を解除してカードを元の位置へ戻す（オーバーレイは閉じない）
+function endConfirmReveal() {
+  const hero = document.querySelector(".confirm-hero");
+  const first = hero ? hero.getBoundingClientRect() : null;
+  const wasHidden = !!hero && hero.style.opacity === "0";
   if (stalinShowTimer) { clearTimeout(stalinShowTimer); stalinShowTimer = null; }
   if (stalinBgVideo) {
     try { stalinBgVideo.pause(); } catch (e) {}
     stalinBgVideo.remove();
     stalinBgVideo = null;
   }
+  const v = $("confirm-video");
+  if (v) { try { v.pause(); } catch (e) {} v.classList.add("hidden"); }
+  try { $("soviet-jingle").pause(); } catch (e) {}
+  $("cards-area").classList.remove("confirm-active");
   $("overlay").classList.remove("soviet");
+  if (!hero) return;
+
+  hero.classList.remove("confirm-hero");
+  hero.style.position = ""; hero.style.left = ""; hero.style.top = "";
+  hero.style.width = ""; hero.style.height = ""; hero.style.margin = "";
+  hero.style.zIndex = ""; hero.style.transition = ""; hero.style.opacity = "";
+  hero.getBoundingClientRect(); // ここでグリッド上の元位置に戻る
+
+  if (first) {
+    // FLIP: 今見えている位置（中央）から元の位置へ滑らかにアニメーション
+    const last = hero.getBoundingClientRect();
+    const dx = first.left - last.left, dy = first.top - last.top;
+    const sx = last.width ? (first.width / last.width) : 1;
+    const sy = last.height ? (first.height / last.height) : 1;
+    hero.style.transformOrigin = "top left";
+    hero.style.transform = "translate(" + dx + "px," + dy + "px) scale(" + sx + "," + sy + ")";
+    if (wasHidden) hero.style.opacity = "0";
+    hero.getBoundingClientRect();
+    hero.style.transition = "transform .55s cubic-bezier(.2,.8,.2,1), opacity .4s ease";
+    hero.style.transform = "";
+    hero.style.opacity = "1";
+    const done = () => {
+      hero.style.transition = ""; hero.style.transform = ""; hero.style.transformOrigin = "";
+    };
+    hero.addEventListener("transitionend", done, { once: true });
+    setTimeout(done, 700);
+  }
 }
 
 function flip(el) {
@@ -508,9 +534,11 @@ $("draw1").onclick = () => openPack(1);
 $("draw10").onclick = () => openPack(10);
 $("open-all").onclick = () => document.querySelectorAll("#cards-area .card:not(.flipped)").forEach((el, i) => setTimeout(() => flip(el), i * 130));
 $("close-overlay").onclick = () => {
+  // 確定演出中/終了後は全部閉じず、まずカードを元の位置に戻す（もう一度押すと閉じる）
+  if (document.querySelector(".confirm-hero")) { endConfirmReveal(); return; }
   $("overlay").classList.add("hidden");
   try { $("soviet-jingle").pause(); } catch (e) {}
-  resetConfirmReveal();
+  $("overlay").classList.remove("soviet");
   renderDex();
 };
 $("detail").onclick = () => $("detail").classList.add("hidden");
