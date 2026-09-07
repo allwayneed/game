@@ -281,11 +281,9 @@ function bindCards() {
     el.onclick = () => flip(el);
   });
 }
-// ソ連の超有名キャラ：他カードをフェードアウト→中央へ移動→ジングル＋赤演出（後日mp4差し替え用フック付き）
+// ソ連の超有名キャラ：他カードをフェードアウト→中央へ移動（裏で待機）→動画を全面再生→終わったらカード（表面）をフェードイン
 const SOVIET_STAR = { stalin: true, lenin: true, trotsky: true };
-const CONFIRM_MOVE_MS = 550;
 const CONFIRM_SCALE = 1.9;
-const CONFIRM_VIDEO_SRC = "assets/confirm.mp4"; // ここにmp4を置けば自動で使われる
 
 function playSovietJingle() {
   if (state.muted) return;
@@ -293,7 +291,7 @@ function playSovietJingle() {
   try { a.currentTime = 0; a.play(); } catch (e) {}
 }
 
-// カードを画面中央へ移動＋拡大しつつ、他のカードをフェードアウトさせる確定演出
+// カードを画面中央へ移動＋拡大（動画の裏で待機、動画が無ければそのまま見える）
 function triggerConfirmReveal(el) {
   const area = $("cards-area");
   area.classList.add("confirm-active");
@@ -318,19 +316,41 @@ function triggerConfirmReveal(el) {
     el.style.height = newH + "px";
   });
 
-  // 移動と同時にジングル＋赤演出（mp4を後から置けば下のtryでそちらも再生される）
-  playSovietJingle();
-  $("overlay").classList.add("soviet");
-  setTimeout(tryPlayConfirmVideo, CONFIRM_MOVE_MS);
+  tryPlayConfirmVideo(el);
 }
 
-function tryPlayConfirmVideo() {
+// 動画（15秒）を画面全面に再生。終わったら裏で待機してたカードをフェードイン。
+// 動画が再生できない場合は従来のジングル＋赤演出にフォールバック。
+function tryPlayConfirmVideo(heroEl) {
   const v = $("confirm-video");
-  if (!v) return;
+  if (!v) { fallbackReveal(heroEl); return; }
+  heroEl.style.opacity = "0"; // 動画が終わるまでカードは隠す
   v.classList.remove("hidden");
   v.currentTime = 0;
+
+  const finish = () => {
+    v.removeEventListener("ended", finish);
+    v.classList.add("hidden");
+    heroEl.style.transition = "opacity .6s ease";
+    heroEl.style.opacity = "1";
+  };
+  v.addEventListener("ended", finish);
+
   const p = v.play();
-  if (p && p.catch) p.catch(() => { v.classList.add("hidden"); });
+  if (p && p.catch) {
+    p.catch(() => {
+      v.removeEventListener("ended", finish);
+      v.classList.add("hidden");
+      heroEl.style.opacity = "1";
+      fallbackReveal(heroEl);
+    });
+  }
+}
+
+function fallbackReveal(heroEl) {
+  heroEl.style.opacity = "1";
+  playSovietJingle();
+  $("overlay").classList.add("soviet");
 }
 
 function resetConfirmReveal() {
@@ -339,7 +359,7 @@ function resetConfirmReveal() {
     el.classList.remove("confirm-hero");
     el.style.position = ""; el.style.left = ""; el.style.top = "";
     el.style.width = ""; el.style.height = ""; el.style.margin = "";
-    el.style.zIndex = ""; el.style.transition = "";
+    el.style.zIndex = ""; el.style.transition = ""; el.style.opacity = "";
   });
   const v = $("confirm-video");
   if (v) { try { v.pause(); } catch (e) {} v.classList.add("hidden"); }
@@ -353,7 +373,7 @@ function flip(el) {
   sFlip();
   if (SOVIET_STAR[card.id]) {
     el.classList.add("ssr-burst");
-    setTimeout(() => triggerConfirmReveal(el), 550);
+    triggerConfirmReveal(el);
   } else if (card.r === "SSR") {
     el.classList.add("ssr-burst");
     setTimeout(sSSR, 150);

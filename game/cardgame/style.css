@@ -203,5 +203,5 @@ footer a { color: #565d75; }
 /* 確定演出：他カードをフェードアウトし、対象カードを画面中央へ */
 .cards-area.confirm-active .card:not(.confirm-hero) { opacity: 0; transition: opacity .35s ease; pointer-events: none; }
 .card.confirm-hero { box-shadow: 0 0 60px 10px rgba(224,72,72,.55); }
-.confirm-video { position: fixed; inset: 0; margin: auto; z-index: 95; max-width: 92vw; max-height: 80vh; object-fit: contain; pointer-events: none; }
+.confirm-video { position: fixed; inset: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 120; background: #05070f; pointer-events: none; }
 .confirm-video.hidden { display: none; }
