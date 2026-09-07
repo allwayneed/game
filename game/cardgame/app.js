@@ -11,7 +11,7 @@ const WIKI_TTL = 7 * 24 * 3600 * 1000;
 
 // ----- 状態（localStorage） -----
 const SKEY = "mhc_state_v1";
-let state = { owned: {}, tickets: TICKET_MAX, lastTs: Date.now(), packs: 0, pity: 0, muted: false };
+let state = { owned: {}, seen: {}, tickets: TICKET_MAX, lastTs: Date.now(), packs: 0, pity: 0, muted: false };
 try {
   const s = JSON.parse(localStorage.getItem(SKEY));
   if (s && typeof s === "object") state = Object.assign(state, s);
@@ -495,11 +495,17 @@ function flip(el) {
   const card = CARD_BY_ID[el.dataset.id];
   el.classList.add("flipped");
   sFlip();
-  if (SOVIET_STAR[card.id] || CHINA_STAR[card.id] || GERMANY_STAR[card.id] || card.r === "SSR") {
-    // ソ連3人＋中国2人＋ドイツ2人＋SSR全員: 中央移動の確定演出
+  const isConfirmChar = SOVIET_STAR[card.id] || CHINA_STAR[card.id] || GERMANY_STAR[card.id] || card.r === "SSR";
+  if (isConfirmChar && !state.seen[card.id]) {
+    // 確定演出は各キャラ初回のみ。見たらstate.seenに記録し、次回から自動スキップ
     el.classList.add("ssr-burst");
     if (!SOVIET_STAR[card.id] && !CHINA_STAR[card.id] && !GERMANY_STAR[card.id]) setTimeout(sSSR, 150);
+    state.seen[card.id] = 1; save();
     if (!document.querySelector(".confirm-hero")) triggerConfirmReveal(el);
+  } else if (isConfirmChar) {
+    // 一度見たキャラ: 演出スキップ、バースト＋音のみ
+    el.classList.add("ssr-burst");
+    if (!SOVIET_STAR[card.id] && !CHINA_STAR[card.id] && !GERMANY_STAR[card.id]) setTimeout(sSSR, 150);
   } else if (card.r === "SR") {
     setTimeout(sNew, 100);
   }
