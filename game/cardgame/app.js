@@ -4,7 +4,7 @@
 // ----- 設定 -----
 const RATE = { SSR: 0.03, SR: 0.14, R: 0.33, N: 0.50 };
 const TICKET_MAX = 5;
-const TICKET_MS = 3 * 60 * 1000; // 3分で1枚
+const TICKET_MS = 10 * 1000;     // 10秒で1枚
 const PITY_LIMIT = 50;           // 50連天井：SSRが出るまでのカウント
 const MAX_LV = 5;
 const WIKI_TTL = 7 * 24 * 3600 * 1000;
@@ -43,6 +43,95 @@ const sFlip = () => { beep(700, .07); beep(1050, .08, "square", .1, .05); };
 const sPack = () => { beep(220, .12, "sawtooth", .1); beep(440, .1, "sawtooth", .08, .08); };
 const sNew  = () => { beep(523, .1); beep(659, .1, "square", .1, .09); beep(784, .12, "square", .1, .18); };
 const sSSR  = () => { [523, 659, 784, 1047, 1319].forEach((f, i) => beep(f, .16, "triangle", .13, i * .09)); };
+
+// ----- 国別裏面SVG -----
+function starD(cx, cy, r) {
+  const pts = [];
+  for (let i = 0; i < 10; i++) {
+    const R = i % 2 ? r * 0.4 : r;
+    const a = (i * 36 - 90) * Math.PI / 180;
+    pts.push((cx + R * Math.cos(a)).toFixed(1) + "," + (cy + R * Math.sin(a)).toFixed(1));
+  }
+  return "M" + pts.join(" L") + " Z";
+}
+function backSVG(code) {
+  const s = BACK_STYLE[code] || "xx";
+  let body = "";
+  if (s === "jp") {
+    // 旭日
+    let rays = "";
+    for (let i = 0; i < 16; i++) {
+      const a = (i * 22.5 - 90) * Math.PI / 180, w = 6.5 * Math.PI / 180;
+      rays += '<path d="M50 75 L' + (50 + 150 * Math.cos(a - w)).toFixed(1) + " " + (75 + 150 * Math.sin(a - w)).toFixed(1) +
+              " L" + (50 + 150 * Math.cos(a + w)).toFixed(1) + " " + (75 + 150 * Math.sin(a + w)).toFixed(1) + ' Z" fill="#b03a3a" opacity=".9"/>';
+    }
+    body = '<rect width="100" height="150" fill="#1d2346"/>' + rays +
+      '<circle cx="50" cy="75" r="19" fill="#c04444"/>' +
+      '<circle cx="50" cy="75" r="19" fill="none" stroke="#e8e8f0" stroke-width="1.2" opacity=".5"/>';
+  } else if (s === "de") {
+    // 鉄十字
+    body = '<rect width="100" height="150" fill="#1a1f38"/>' +
+      '<rect x="10" y="14" width="80" height="4" fill="#d8dade" opacity=".3"/>' +
+      '<rect x="10" y="20" width="80" height="4" fill="#b03a3a" opacity=".3"/>' +
+      '<path d="M44 60 L36 25 L64 25 L56 60 L60 60 L95 61 L95 89 L60 81 L56 90 L64 125 L36 125 L44 90 L40 90 L5 89 L5 61 L40 69 Z" fill="#d8dade"/>' +
+      '<path d="M50 71 l6 6 -6 6 -6 -6 Z" fill="#1a1f38"/>';
+  } else if (s === "ru") {
+    // 槌と鎌
+    body = '<rect width="100" height="150" fill="#331a24"/>' +
+      '<circle cx="50" cy="75" r="34" fill="#8a2432"/>' +
+      '<path d="M66 48 A30 30 0 1 0 66 102" stroke="#e8c25a" stroke-width="7" fill="none"/>' +
+      '<line x1="64" y1="100" x2="55" y2="112" stroke="#e8c25a" stroke-width="7" stroke-linecap="round"/>' +
+      '<g transform="rotate(-40 50 75)"><rect x="45" y="38" width="7" height="74" fill="#e8c25a"/><rect x="32" y="38" width="34" height="14" fill="#e8c25a"/></g>';
+  } else if (s === "cn") {
+    // ★
+    body = '<rect width="100" height="150" fill="#231d3c"/>' +
+      '<circle cx="50" cy="75" r="30" fill="#8a2432" opacity=".85"/>' +
+      '<path d="' + starD(50, 75, 30) + '" fill="#e04848"/>' +
+      '<path d="' + starD(18, 32, 7) + '" fill="#e8c25a"/>' +
+      '<path d="' + starD(82, 32, 7) + '" fill="#e8c25a"/>' +
+      '<path d="' + starD(50, 20, 7) + '" fill="#e8c25a"/>';
+  } else if (s === "us") {
+    // 星条
+    body = '<rect width="100" height="150" fill="#232b4e"/>' +
+      '<rect y="115" width="100" height="9" fill="#b03a3a"/>' +
+      '<rect y="124" width="100" height="9" fill="#d8dade"/>' +
+      '<rect y="133" width="100" height="9" fill="#b03a3a"/>' +
+      '<rect y="142" width="100" height="8" fill="#d8dade"/>' +
+      '<path d="' + starD(28, 45, 10) + '" fill="#d8dade"/>' +
+      '<path d="' + starD(50, 45, 10) + '" fill="#d8dade"/>' +
+      '<path d="' + starD(72, 45, 10) + '" fill="#d8dade"/>';
+  } else if (s === "uk") {
+    // ユニオンジャック風
+    body = '<rect width="100" height="150" fill="#1c2850"/>' +
+      '<line x1="0" y1="0" x2="100" y2="150" stroke="#d8dade" stroke-width="20"/>' +
+      '<line x1="100" y1="0" x2="0" y2="150" stroke="#d8dade" stroke-width="20"/>' +
+      '<line x1="0" y1="0" x2="100" y2="150" stroke="#a83a3a" stroke-width="9"/>' +
+      '<line x1="100" y1="0" x2="0" y2="150" stroke="#a83a3a" stroke-width="9"/>' +
+      '<rect x="38" y="0" width="24" height="150" fill="#d8dade"/>' +
+      '<rect x="0" y="63" width="100" height="24" fill="#d8dade"/>' +
+      '<rect x="42" y="0" width="16" height="150" fill="#a83a3a"/>' +
+      '<rect x="0" y="67" width="100" height="16" fill="#a83a3a"/>';
+  } else if (s === "fr" || s === "it") {
+    // トリコロール
+    const c1 = s === "fr" ? "#3a4a8a" : "#3a7a4a";
+    body = '<rect width="100" height="150" fill="' + c1 + '"/>' +
+      '<rect x="34" width="33" height="150" fill="#d8dade"/>' +
+      '<rect x="67" width="33" height="150" fill="#a83a3a"/>' +
+      '<rect width="100" height="150" fill="#12141c" opacity=".25"/>' +
+      '<circle cx="50" cy="75" r="17" fill="#1a1f38" opacity=".85"/>' +
+      '<circle cx="50" cy="75" r="17" fill="none" stroke="#e8c25a" stroke-width="1.5" opacity=".7"/>';
+  } else {
+    // 汎用
+    let hatch = "";
+    for (let i = -150; i < 200; i += 18) hatch += '<line x1="' + i + '" y1="0" x2="' + (i + 150) + '" y2="150" stroke="#2c3350" stroke-width="3"/>';
+    body = '<rect width="100" height="150" fill="#1c213e"/><g>' + hatch + '</g>' +
+      '<path d="M50 45 L80 75 L50 105 L20 75 Z" fill="none" stroke="#4a5490" stroke-width="2"/>' +
+      '<circle cx="50" cy="75" r="10" fill="#2c3350"/>';
+  }
+  return '<svg class="backpat" viewBox="0 0 100 150" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">' + body + "</svg>";
+}
+function countryOf(id) { return COUNTRY[id] || "xx"; }
+function countryName(id) { return COUNTRY_NAME[countryOf(id)] || ""; }
 
 // ----- Wikipedia API -----
 function resolveTitle(title, q) {
@@ -112,7 +201,7 @@ function renderTickets() {
   } else {
     const remain = TICKET_MS - (Date.now() - state.lastTs);
     const s = Math.max(0, Math.ceil(remain / 1000));
-    timer.textContent = "次まで " + Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+    timer.textContent = "次まで 0:" + String(s).padStart(2, "0");
   }
   document.getElementById("draw1").disabled = state.tickets < 1;
   document.getElementById("draw10").disabled = state.tickets < 2;
@@ -159,12 +248,12 @@ function cardHTML(card, isNew) {
     : '<div class="noimg">' + esc(card.n.slice(0, 1)) + "</div>";
   return '<div class="card r-' + card.r + (isNew ? " new-badge" : "") + '" data-id="' + card.id + '">' +
     '<div class="inner">' +
-    '<div class="face back"><div class="q">？</div></div>' +
+    '<div class="face back">' + backSVG(countryOf(card.id)) + '<div class="q">？</div></div>' +
     '<div class="face front">' +
     '<div class="rarity-badge">' + card.r + "</div>" +
     '<div class="portrait">' + img + "</div>" +
     '<div class="card-name">' + esc(card.n) + "</div>" +
-    '<div class="card-tag">' + esc(card.t) + "</div>" +
+    '<div class="card-tag">' + esc(card.t) + "／" + esc(countryName(card.id)) + "</div>" +
     "</div></div></div>";
 }
 
@@ -242,19 +331,18 @@ function renderDex() {
     const lv = state.owned[c.id] || 0;
     const owned = lv > 0;
     const wc = wikiCache[c.id] || {};
-    const inner = wc.th
+    const thumb = (owned && wc.th)
       ? '<img class="thumb" loading="lazy" src="' + esc(wc.th) + '" alt="">'
-      : '<img class="thumb" alt="" src="data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg"/>') + '">';
+      : '<div class="thumbwrap">' + backSVG(countryOf(c.id)) + "</div>";
     return '<div class="dex-card' + (owned ? "" : " locked") + '" data-id="' + c.id + '">' +
       (owned && lv > 1 ? '<span class="lv">Lv' + lv + "</span>" : "") +
       (owned ? '<span class="badge-mini ' + c.r + '">' + c.r + "</span>" : "") +
-      inner +
+      thumb +
       '<div class="cname">' + (owned ? esc(c.n) : "？？？") + "</div></div>";
   }).join("");
   grid.querySelectorAll(".dex-card").forEach(el => {
     el.onclick = () => showDetail(el.dataset.id);
   });
-  // 未取得でも薄くキャッシュ取得（表示は黒のまま）
   fetchWiki(list.filter(c => state.owned[c.id]).map(c => c.id));
 }
 
@@ -264,14 +352,15 @@ function showDetail(id) {
   const wc = wikiCache[id] || {};
   if (!lv) {
     $("detail-box").innerHTML =
-      '<img class="dphoto" alt="" src="data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg"/>') + '">' +
-      '<div class="dinfo"><h2>？？？</h2><div class="dmeta">未取得 — ' + esc(c.r) + "／" + esc(c.t) +
-      '</div><div class="ddesc">パックを開けてこの人物を手に入れよう。</div></div>';
+      '<div class="dphotowrap">' + backSVG(countryOf(id)) + "</div>" +
+      '<div class="dinfo"><h2>？？？</h2>' +
+      '<div class="dmeta">未取得 — ' + esc(c.r) + "／" + esc(c.t) + "／" + esc(countryName(id)) +
+      '</div><div class="ddesc">パックを開けてこの人物を手に入れよう。裏面の模様がヒント。</div></div>';
   } else {
     $("detail-box").innerHTML =
-      (wc.th ? '<img class="dphoto" src="' + esc(wc.th) + '" alt="">' : "") +
+      (wc.th ? '<img class="dphoto" src="' + esc(wc.th) + '" alt="">' : '<div class="dphotowrap">' + backSVG(countryOf(id)) + "</div>") +
       '<div class="dinfo"><h2>' + esc(c.n) + "</h2>" +
-      '<div class="dmeta">' + c.r + " ／ " + esc(c.t) + " ／ Lv" + lv + (lv >= MAX_LV ? "（最大）" : "") + "</div>" +
+      '<div class="dmeta">' + c.r + " ／ " + esc(c.t) + " ／ " + esc(countryName(id)) + " ／ Lv" + lv + (lv >= MAX_LV ? "（最大）" : "") + "</div>" +
       '<div class="ddesc">' + esc(c.d) + "</div>" +
       (wc.ex ? '<div class="dextract">' + esc(wc.ex) + "</div>" : "") +
       (wc.t ? '<a class="dlink" href="https://ja.wikipedia.org/wiki/' + encodeURIComponent(wc.t) + '" target="_blank" rel="noopener">Wikipediaで読む →</a>' : "") +
@@ -319,4 +408,4 @@ syncTickets();
 renderStats();
 renderFilters();
 renderDex();
-setInterval(() => { syncTickets(); }, 1000);
+setInterval(() => { syncTickets(); }, 500);

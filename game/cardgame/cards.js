@@ -40,6 +40,7 @@ const RAW_CARDS = [
   ["fukuzawa","福澤諭吉","SR","思想","『学問のすゝめ』。慶應義塾の創設者。"],
   ["yoshida","吉田松陰","SR","日本","松下村塾で幕末の英才を育てた。"],
   ["ataturk","ムスタファ・ケマル・アタテュルク","SR","政治","オスマン帝国崩壊後にトルコ共和国を建国。"],
+  ["mussolini","ベニート・ムッソリーニ","SR","政治","ファシズムを率いたイタリアの独裁者。"],
   // ===== R =====
   ["nicholas2","ニコライ2世","R","政治","ロシア最後の皇帝。"],
   ["wilson","ウッドロウ・ウィルソン","R","政治","国際連盟を提唱した米大統領。"],
@@ -163,3 +164,38 @@ const CARD_BY_ID = Object.fromEntries(CARDS.map(c => [c.id, c]));
 const BY_RARITY = { SSR: [], SR: [], R: [], N: [] };
 CARDS.forEach(c => BY_RARITY[c.r].push(c));
 const TAGS = ["全て", ...new Set(CARDS.map(c => c.t))];
+
+// ----- 国データ（裏面デザイン・詳細表示用） -----
+const COUNTRY = {
+  // SSR
+  hitler:"de", napoleon:"fr", lincoln:"us", churchill:"uk", stalin:"ru", mao:"cn", einstein:"de", meiji:"jp", gandhi:"in", ryoma:"jp",
+  // SR
+  lenin:"ru", marx:"de", darwin:"uk", edison:"us", curie:"fr", washington:"us", newton:"uk", beethoven:"de", mozart:"at", watt:"uk",
+  bismarck:"de", peter1:"ru", catherine2:"ru", victoria:"uk", nelson:"uk", adamsmith:"uk", kant:"de", rousseau:"fr", pasteur:"fr", fdr:"us",
+  sunwen:"cn", chiang:"cn", degaulle:"fr", yamamoto56:"jp", fukuzawa:"jp", yoshida:"jp", ataturk:"tr", mussolini:"it",
+  // R
+  nicholas2:"ru", wilson:"us", clemenceau:"fr", jefferson:"us", galileo:"it", mendel:"at", voltaire:"fr", montesquieu:"fr", bach:"de",
+  elizabeth1:"uk", louis16:"fr", mariatheresia:"at", ito:"jp", saigo:"jp", okubo:"jp", katsu:"jp", takasugi:"jp", kido:"jp",
+  hijikata:"jp", okita:"jp", shibusawa:"jp", iwasaki:"jp", noguchi:"jp", kitasato:"jp", yukawa:"jp", soseki:"jp", ichiyo:"jp",
+  akutagawa:"jp", chaplin:"uk", picasso:"es", gogh:"nl", trotsky:"ru", goebbels:"de", rommel:"de", togo:"jp", nogi:"jp", tojo:"jp",
+  ishiwara:"jp", ike:"us", macarthur:"us", monty:"uk", patton:"us", truman:"us", hemingway:"us", kafka:"at", twain:"us",
+  dickens:"uk", dostoevsky:"ru", tolstoy:"ru", chekhov:"ru", goethe:"de", balzac:"fr", zola:"fr", austen:"uk", poe:"us",
+  anthony:"us", keller:"us", anne:"nl", sugihara:"jp", orwell:"uk", neru:"in", hochimin:"vn", li:"cn", yuan:"cn", locke:"uk",
+  nietzsche:"de", montessori:"it", nitobe:"jp",
+  // N
+  columbus:"it", magellan:"pt", cook:"uk", amundsen:"no", scott:"uk", livingstone:"uk", koch:"de", stevenson:"uk", ford:"us",
+  rockefeller:"us", carnegie:"us", napoleon3:"fr", kondo:"jp", hiraga:"jp", sugita:"jp", okuma:"jp", yamagata:"jp", komura:"jp",
+  kim:"kr", wang:"cn", zhangzolin:"cn", petain:"fr", chamberlain:"uk", himmler:"de", goering:"de", hindenburg:"de",
+  mill:"uk", ricardo:"uk", malthus:"uk", owen:"uk", bentham:"uk", baudelaire:"fr", tukio:"jp", kotoku:"jp", kita:"jp",
+  osugi:"jp", schiller:"de", remarque:"de", hesse:"de", mann:"de", tubman:"us", douglass:"us", garibaldi:"it", cavour:"it",
+  mazzini:"it", bolivar:"ve",
+};
+
+const COUNTRY_NAME = {
+  jp:"日本", de:"ドイツ", ru:"ロシア", cn:"中国", us:"アメリカ", uk:"イギリス", fr:"フランス", it:"イタリア",
+  at:"オーストリア", in:"インド", tr:"トルコ", vn:"ベトナム", kr:"朝鮮", es:"スペイン", nl:"オランダ",
+  pt:"ポルトガル", no:"ノルウェー", ve:"ベネズエラ", xx:"その他",
+};
+
+// 裏面パターンのグループ（ここにない国は汎用デザイン）
+const BACK_STYLE = { jp:"jp", de:"de", ru:"ru", cn:"cn", us:"us", uk:"uk", fr:"fr", it:"it" };
