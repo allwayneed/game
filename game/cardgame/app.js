@@ -282,14 +282,24 @@ function bindCards() {
     el.onclick = () => flip(el);
   });
 }
-// ソ連の超有名キャラ：他カードをフェードアウト→中央へ移動
-//  - スターリン以外（レーニン等）：映像を全面再生→終わったらカード表面をフェードイン
-//  - スターリン：カードは見えたまま背景に映像→終わったら最終フレームでそのまま停止
+// 確定演出（カードが画面中央へ移動する演出）
+//  - スターリン：20秒映像を背景に流し、15秒の時点でカードを出し、終わったら最終フレームで静止
+//  - レーニン・トロツキー：15秒映像を全面再生→終わったらカード表面をフェードイン
+//  - SSR全員：中央へバーンと登場。assets/ssr.mp4 を置けば映像も自動で流れる（無ければ飛ばしてそのまま見せる）
 const SOVIET_STAR = { stalin: true, lenin: true, trotsky: true };
 const STALIN_HERO = { stalin: true };
 const CONFIRM_SCALE = 1.9;
+const SSR_VIDEO_SRC = "assets/ssr.mp4"; // SSR全員用の映像（後日用意）
 let stalinBgVideo = null;
 let stalinShowTimer = null;
+
+// カードごとの確定演出設定
+function confirmSpecFor(card) {
+  if (STALIN_HERO[card.id]) return { src: "assets/stalin.mp4", bg: true, soviet: true };
+  if (SOVIET_STAR[card.id]) return { src: "assets/confirm.mp4", bg: false, soviet: true };
+  if (card.r === "SSR") return { src: SSR_VIDEO_SRC, bg: false, soviet: false };
+  return null;
+}
 
 function playSovietJingle() {
   if (state.muted) return;
@@ -322,23 +332,28 @@ function triggerConfirmReveal(el) {
     el.style.height = newH + "px";
   });
 
-  tryPlayConfirmVideo(el, !!STALIN_HERO[el.dataset.id]);
+  tryPlayConfirmVideo(el, confirmSpecFor(CARD_BY_ID[el.dataset.id]));
 }
 
-// bgMode=false: 映像（10秒）を画面全面に再生し、終わったら裏で待機してたカードをフェードイン
-// bgMode=true（スターリン）: カードは見えたまま、映像を背景として流し、終わったら最終フレームで停止したままにする
-// どちらも再生できない場合はジングル＋赤演出にフォールバック
-function tryPlayConfirmVideo(heroEl, bgMode) {
+// spec.src の映像を再生し、終わったらカードをフェードイン。映像が無い/再生不可なら即カードを見せる。
+// spec.bg（スターリン）のみ背景モード: カードは15秒の時点で登場し、映像は最終フレームで静止。
+function tryPlayConfirmVideo(heroEl, spec) {
   const v = $("confirm-video");
-  if (!v || !v.src) { fallbackReveal(heroEl); return; }
 
-  if (bgMode) {
+  // 映像なし（SSRでassets/ssr.mp4がまだ無い等）: カードは見えたまま中央にバーン
+  if (!spec || !spec.src || !v) {
+    heroEl.style.opacity = "1";
+    if (spec && spec.soviet) fallbackReveal(heroEl); // ソ連3人は赤背景＋ジングルにフォールバック
+    return;
+  }
+
+  if (spec.bg) {
     // スターリン用：20秒映像を全面に流し、15秒の時点でカードを出す。終了後は最終フレームで静止。
     stalinBgVideo = v.cloneNode();
     stalinBgVideo.removeAttribute("id");
     stalinBgVideo.classList.remove("hidden");
     stalinBgVideo.classList.add("confirm-video-bg");
-    stalinBgVideo.src = "assets/stalin.mp4";
+    stalinBgVideo.src = spec.src;
     $("overlay").appendChild(stalinBgVideo);
     heroEl.style.opacity = "0"; // 最初の15秒は映像を全面に見せる
 
@@ -362,25 +377,31 @@ function tryPlayConfirmVideo(heroEl, bgMode) {
     return;
   }
 
+  // 全面再生モード（レーニン等 / SSR）
   heroEl.style.opacity = "0"; // 映像が終わるまでカードは隠す
-  v.classList.remove("hidden");
+  v.src = spec.src;
+  v.classList.add("hidden"); // 実際に再生が始まるまで全面には出さない（404などで一瞬黒くならないように）
   v.currentTime = 0;
 
+  const onPlaying = () => v.classList.remove("hidden");
   const finish = () => {
+    v.removeEventListener("playing", onPlaying);
     v.removeEventListener("ended", finish);
     v.classList.add("hidden");
     heroEl.style.transition = "opacity .6s ease";
     heroEl.style.opacity = "1";
   };
+  v.addEventListener("playing", onPlaying);
   v.addEventListener("ended", finish);
 
   const p = v.play();
   if (p && p.catch) {
     p.catch(() => {
+      v.removeEventListener("playing", onPlaying);
       v.removeEventListener("ended", finish);
       v.classList.add("hidden");
       heroEl.style.opacity = "1";
-      fallbackReveal(heroEl);
+      if (spec.soviet) fallbackReveal(heroEl);
     });
   }
 }
@@ -441,12 +462,11 @@ function flip(el) {
   const card = CARD_BY_ID[el.dataset.id];
   el.classList.add("flipped");
   sFlip();
-  if (SOVIET_STAR[card.id]) {
+  if (SOVIET_STAR[card.id] || card.r === "SSR") {
+    // ソ連3人＋SSR全員: 中央移動の確定演出
     el.classList.add("ssr-burst");
+    if (!SOVIET_STAR[card.id]) setTimeout(sSSR, 150);
     if (!document.querySelector(".confirm-hero")) triggerConfirmReveal(el);
-  } else if (card.r === "SSR") {
-    el.classList.add("ssr-burst");
-    setTimeout(sSSR, 150);
   } else if (card.r === "SR") {
     setTimeout(sNew, 100);
   }
