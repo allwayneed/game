@@ -281,9 +281,13 @@ function bindCards() {
     el.onclick = () => flip(el);
   });
 }
-// ソ連の超有名キャラ：他カードをフェードアウト→中央へ移動（裏で待機）→動画を全面再生→終わったらカード（表面）をフェードイン
+// ソ連の超有名キャラ：他カードをフェードアウト→中央へ移動
+//  - スターリン以外（レーニン等）：映像を全面再生→終わったらカード表面をフェードイン
+//  - スターリン：カードは見えたまま背景に映像→終わったら最終フレームでそのまま停止
 const SOVIET_STAR = { stalin: true, lenin: true, trotsky: true };
+const STALIN_HERO = { stalin: true };
 const CONFIRM_SCALE = 1.9;
+let stalinBgVideo = null;
 
 function playSovietJingle() {
   if (state.muted) return;
@@ -291,7 +295,7 @@ function playSovietJingle() {
   try { a.currentTime = 0; a.play(); } catch (e) {}
 }
 
-// カードを画面中央へ移動＋拡大（動画の裏で待機、動画が無ければそのまま見える）
+// カードを画面中央へ移動＋拡大
 function triggerConfirmReveal(el) {
   const area = $("cards-area");
   area.classList.add("confirm-active");
@@ -316,15 +320,39 @@ function triggerConfirmReveal(el) {
     el.style.height = newH + "px";
   });
 
-  tryPlayConfirmVideo(el);
+  tryPlayConfirmVideo(el, !!STALIN_HERO[el.dataset.id]);
 }
 
-// 動画（15秒）を画面全面に再生。終わったら裏で待機してたカードをフェードイン。
-// 動画が再生できない場合は従来のジングル＋赤演出にフォールバック。
-function tryPlayConfirmVideo(heroEl) {
+// bgMode=false: 映像（10秒）を画面全面に再生し、終わったら裏で待機してたカードをフェードイン
+// bgMode=true（スターリン）: カードは見えたまま、映像を背景として流し、終わったら最終フレームで停止したままにする
+// どちらも再生できない場合はジングル＋赤演出にフォールバック
+function tryPlayConfirmVideo(heroEl, bgMode) {
   const v = $("confirm-video");
-  if (!v) { fallbackReveal(heroEl); return; }
-  heroEl.style.opacity = "0"; // 動画が終わるまでカードは隠す
+  if (!v || !v.src) { fallbackReveal(heroEl); return; }
+
+  if (bgMode) {
+    // スターリン用：overlay内に複製した映像をカードの背面に置く
+    stalinBgVideo = v.cloneNode();
+    stalinBgVideo.removeAttribute("id");
+    stalinBgVideo.classList.remove("hidden");
+    stalinBgVideo.classList.add("confirm-video-bg");
+    $("overlay").appendChild(stalinBgVideo);
+
+    const finishBg = () => {
+      stalinBgVideo.removeEventListener("ended", finishBg);
+      try { stalinBgVideo.pause(); } catch (e) {} // 最終フレームでそのまま停止
+    };
+    stalinBgVideo.addEventListener("ended", finishBg);
+    const p2 = stalinBgVideo.play();
+    if (p2 && p2.catch) p2.catch(() => {
+      stalinBgVideo.removeEventListener("ended", finishBg);
+      stalinBgVideo.remove(); stalinBgVideo = null;
+      fallbackReveal(heroEl);
+    });
+    return;
+  }
+
+  heroEl.style.opacity = "0"; // 映像が終わるまでカードは隠す
   v.classList.remove("hidden");
   v.currentTime = 0;
 
@@ -363,6 +391,11 @@ function resetConfirmReveal() {
   });
   const v = $("confirm-video");
   if (v) { try { v.pause(); } catch (e) {} v.classList.add("hidden"); }
+  if (stalinBgVideo) {
+    try { stalinBgVideo.pause(); } catch (e) {}
+    stalinBgVideo.remove();
+    stalinBgVideo = null;
+  }
   $("overlay").classList.remove("soviet");
 }
 
@@ -373,7 +406,7 @@ function flip(el) {
   sFlip();
   if (SOVIET_STAR[card.id]) {
     el.classList.add("ssr-burst");
-    triggerConfirmReveal(el);
+    if (!document.querySelector(".confirm-hero")) triggerConfirmReveal(el);
   } else if (card.r === "SSR") {
     el.classList.add("ssr-burst");
     setTimeout(sSSR, 150);

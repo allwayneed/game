@@ -205,3 +205,6 @@ footer a { color: #565d75; }
 .card.confirm-hero { box-shadow: 0 0 60px 10px rgba(224,72,72,.55); }
 .confirm-video { position: fixed; inset: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 120; background: #05070f; pointer-events: none; }
 .confirm-video.hidden { display: none; }
+
+/* スターリン用：overlay内の背景映像（カード z90 より下、ボタン z60 より…いや上に置いて下から透ける形） */
+.confirm-video-bg { position: fixed; inset: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 40; background: #000; pointer-events: none; }
