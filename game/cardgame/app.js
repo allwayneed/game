@@ -295,18 +295,29 @@ function bindCards() {
     el.onclick = () => flip(el);
   });
 }
+// ソ連の超有名キャラ：専用ジングル＋赤背景の確定演出
+const SOVIET_STAR = { stalin: true, lenin: true, trotsky: true };
+function playSoviet() {
+  if (state.muted) return;
+  const a = $("soviet-jingle");
+  try { a.currentTime = 0; a.play(); } catch (e) {}
+}
 function flip(el) {
-  if (el.classList.contains("flipped")) return;
+  if (el.classList.contains("flipped")) { showDetail(el.dataset.id); return; }
   const card = CARD_BY_ID[el.dataset.id];
   el.classList.add("flipped");
   sFlip();
-  if (card.r === "SSR") {
+  if (SOVIET_STAR[card.id]) {
+    el.classList.add("ssr-burst");
+    $("overlay").classList.add("soviet");
+    playSoviet();
+  } else if (card.r === "SSR") {
     el.classList.add("ssr-burst");
     setTimeout(sSSR, 150);
   } else if (card.r === "SR") {
     setTimeout(sNew, 100);
   }
-  if (el.classList.contains("new-badge")) setTimeout(sNew, 80);
+  if (el.classList.contains("new-badge") && !SOVIET_STAR[card.id]) setTimeout(sNew, 80);
 }
 
 // ----- 図鑑 -----
@@ -389,7 +400,12 @@ document.querySelectorAll(".tab").forEach(t => {
 $("draw1").onclick = () => openPack(1);
 $("draw10").onclick = () => openPack(10);
 $("open-all").onclick = () => document.querySelectorAll("#cards-area .card:not(.flipped)").forEach((el, i) => setTimeout(() => flip(el), i * 130));
-$("close-overlay").onclick = () => { $("overlay").classList.add("hidden"); renderDex(); };
+$("close-overlay").onclick = () => {
+  $("overlay").classList.add("hidden");
+  $("overlay").classList.remove("soviet");
+  try { $("soviet-jingle").pause(); } catch (e) {}
+  renderDex();
+};
 $("detail").onclick = () => $("detail").classList.add("hidden");
 $("mute").onclick = () => {
   state.muted = !state.muted; save();

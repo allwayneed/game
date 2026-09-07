@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>近代史カードパック</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 <header>
@@ -59,12 +59,12 @@
 <div id="overlay" class="overlay hidden">
   <div class="overlay-head">
     <span id="overlay-title">開封結果</span>
-    <div class="overlay-actions">
-      <button id="open-all" class="btn btn-small">すべてめくる</button>
-      <button id="close-overlay" class="btn btn-small">閉じる</button>
-    </div>
   </div>
   <div id="cards-area" class="cards-area"></div>
+  <div class="overlay-actions">
+    <button id="open-all" class="btn btn-small">すべてめくる</button>
+    <button id="close-overlay" class="btn btn-small">閉じる</button>
+  </div>
 </div>
 
 <!-- カード詳細 -->
@@ -72,7 +72,8 @@
   <div class="detail-box" id="detail-box"></div>
 </div>
 
-<script src="cards.js"></script>
-<script src="app.js"></script>
+<audio id="soviet-jingle" src="assets/soviet.mp3" preload="auto"></audio>
+<script src="cards.js?v=4"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>

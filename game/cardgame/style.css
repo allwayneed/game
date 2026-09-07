@@ -104,11 +104,17 @@ main { padding: 10px 16px; }
 @keyframes fadein { from { opacity: 0; } }
 .overlay-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .overlay-head span { font-size: 17px; font-weight: bold; }
-.overlay-actions { display: flex; gap: 8px; }
+.overlay-actions { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 60; }
+.overlay.soviet::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
+  background: radial-gradient(circle at 50% 32%, rgba(200,32,44,.45) 0%, rgba(140,16,28,.2) 45%, transparent 72%);
+  animation: redpulse 1s ease-in-out infinite alternate;
+}
+@keyframes redpulse { from { opacity: .4; } to { opacity: 1; } }
 .btn-small { padding: 7px 12px; font-size: 13px; border-radius: 8px; }
 .cards-area {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 14px; max-width: 780px; margin: 0 auto; padding-bottom: 30px;
+  gap: 14px; max-width: 780px; margin: 0 auto; padding-bottom: 96px;
 }
 
 /* ---- カード（めくり） ---- */
