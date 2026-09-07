@@ -6,14 +6,20 @@ const RAW_CARDS = [
   ["napoleon","ナポレオン・ボナパルト","SSR","軍事","フランス皇帝。ヨーロッパ大陸をほぼ制圧した英雄。"],
   ["lincoln","エイブラハム・リンカーン","SSR","政治","アメリカ第16代大統領。奴隷解放宣言を発した。"],
   ["churchill","ウィンストン・チャーチル","SSR","政治","イギリス首相。大戦下の国民を鼓舞し続けた。"],
-  ["stalin","ヨシフ・スターリン","SSR","政治","ソ連の最高指導者。粛清と五カ年計画で国家を改造した。"],
+  ["stalin","ヨシフ・スターリン","USSR","政治","ソ連の最高指導者。粛清と五カ年計画で国家を改造した。"],
   ["mao","毛沢東","SSR","政治","中華人民共和国の建国者。"],
   ["einstein","アルベルト・アインシュタイン","SSR","科学","相対性理論を唱えた20世紀最大の物理学者。"],
   ["meiji","明治天皇","SSR","日本","明治維新の中心。近代日本の起点となった。"],
   ["gandhi","マハトマ・ガンディー","SSR","政治","非暴力・不服従でインド独立へ導いた。"],
   ["ryoma","坂本龍馬","SSR","日本","幕末の志士。薩長同盟を仲介し日本を動かした。"],
+  ["zhukov","ゲオルギー・ジューコフ","SSR","軍事","ソ連元帥。スターリングラード攻防戦からベルリン攻防戦まで赤軍を勝利に導いた。"],
+  ["gagarin","ユーリ・ガガーリン","SSR","科学","人類初の宇宙飛行を成し遂げた宇宙飛行士。「プショイク！」"],
   // ===== SR =====
   ["lenin","ウラジーミル・レーニン","SR","革命","十月革命でソビエト政権を樹立した。"],
+  ["khrushchev","ニキータ・フルシチョフ","SR","政治","スターリン批判とキューバ危機で知られるソ連指導者。"],
+  ["brezhnev","レオニード・ブレジネフ","SR","政治","長期政権でソ連の全盛期を支えた指導者。デタントを推進。"],
+  ["gorbachev","ミハイル・ゴルバチョフ","SR","政治","ペレストロイカと新思考外交で冷戦終結へ導いた。ノーベル平和賞。"],
+  ["korolev","セルゲイ・コロリョフ","SR","科学","ソ連宇宙開発の総指揮者。スプートニクとガガーリンを支えた。「ボス」。"],
   ["marx","カール・マルクス","SR","思想","『資本論』著者。共産主義思想の祖。"],
   ["darwin","チャールズ・ダーウィン","SR","科学","進化論『種の起源』で生物観を一変させた。"],
   ["edison","トーマス・エジソン","SR","科学","白熱電球など千を超える特許を持つ発明王。"],
@@ -74,6 +80,9 @@ const RAW_CARDS = [
   ["picasso","パブロ・ピカソ","R","芸術","キュビスムを生んだ20世紀の巨匠。"],
   ["gogh","フィンセント・ファン・ゴッホ","R","芸術","『ひまわり』の画家。"],
   ["trotsky","レフ・トロツキー","R","革命","赤軍を組織した革命家。"],
+  ["kalashnikov","ミハイル・カラシニコフ","R","軍事","AK-47を設計した銃器設計者。世界中で使われる伝説のライフル。"],
+  ["gorky","マクシム・ゴーリキー","R","芸術","『母』『幼年時代』などの作家。社会主義リアリズムの旗手。"],
+  ["shostakovich","ドミトリー・ショスタコーヴィチ","R","芸術","交響曲第5番『革命』で知られるソ連を代表する作曲家。"],
   ["goebbels","ヨーゼフ・ゲッベルス","R","政治","ナチスの宣伝相。"],
   ["rommel","エルヴィン・ロンメル","R","軍事","「砂漠の狐」と呼ばれた名将。"],
   ["togo","東郷平八郎","R","軍事","日本海海戦で勝利した連合艦隊司令長官。"],
@@ -161,7 +170,7 @@ const RAW_CARDS = [
 
 const CARDS = RAW_CARDS.map(([id, n, r, t, d, w]) => ({ id, n, r, t, d, w: w || n }));
 const CARD_BY_ID = Object.fromEntries(CARDS.map(c => [c.id, c]));
-const BY_RARITY = { SSR: [], SR: [], R: [], N: [] };
+const BY_RARITY = { USSR: [], SSR: [], SR: [], R: [], N: [] };
 CARDS.forEach(c => BY_RARITY[c.r].push(c));
 const TAGS = ["全て", ...new Set(CARDS.map(c => c.t))];
 
@@ -182,6 +191,9 @@ const COUNTRY = {
   dickens:"uk", dostoevsky:"ru", tolstoy:"ru", chekhov:"ru", goethe:"de", balzac:"fr", zola:"fr", austen:"uk", poe:"us",
   anthony:"us", keller:"us", anne:"nl", sugihara:"jp", orwell:"uk", neru:"in", hochimin:"vn", li:"cn", yuan:"cn", locke:"uk",
   nietzsche:"de", montessori:"it", nitobe:"jp",
+  // ソ連 追加
+  zhukov:"ru", gagarin:"ru", khrushchev:"ru", brezhnev:"ru", gorbachev:"ru",
+  korolev:"ru", kalashnikov:"ru", gorky:"ru", shostakovich:"ru",
   // N
   columbus:"it", magellan:"pt", cook:"uk", amundsen:"no", scott:"uk", livingstone:"uk", koch:"de", stevenson:"uk", ford:"us",
   rockefeller:"us", carnegie:"us", napoleon3:"fr", kondo:"jp", hiraga:"jp", sugita:"jp", okuma:"jp", yamagata:"jp", komura:"jp",

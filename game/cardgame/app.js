@@ -204,13 +204,14 @@ function rollRarity(forceSSR) {
 }
 function drawOne() {
   let r = rollRarity(state.pity + 1 >= PITY_LIMIT);
-  const pool = BY_RARITY[r];
+  // USSR（スターリン）はSSRと同じ排出枠から出る
+  const pool = r === "SSR" ? BY_RARITY.SSR.concat(BY_RARITY.USSR || []) : BY_RARITY[r];
   return pool[Math.floor(Math.random() * pool.length)];
 }
 function drawPack(n) {
   const cards = [];
   for (let i = 0; i < n; i++) cards.push(drawOne());
-  if (n >= 10 && !cards.some(c => c.r === "SSR" || c.r === "SR")) {
+  if (n >= 10 && !cards.some(c => c.r === "SSR" || c.r === "USSR" || c.r === "SR")) {
     const pool = BY_RARITY.SR;
     cards[n - 1] = pool[Math.floor(Math.random() * pool.length)];
   }
@@ -256,7 +257,7 @@ async function openPack(n) {
 
   const cards = drawPack(n);
   const results = cards.map(c => ({ card: c, isNew: acquire(c) }));
-  const gotSSR = cards.some(c => c.r === "SSR");
+  const gotSSR = cards.some(c => c.r === "SSR" || c.r === "USSR");
   state.pity = gotSSR ? 0 : state.pity + n;
   save();
   currentDraw = results;
@@ -288,6 +289,7 @@ const SOVIET_STAR = { stalin: true, lenin: true, trotsky: true };
 const STALIN_HERO = { stalin: true };
 const CONFIRM_SCALE = 1.9;
 let stalinBgVideo = null;
+let stalinShowTimer = null;
 
 function playSovietJingle() {
   if (state.muted) return;
@@ -331,12 +333,19 @@ function tryPlayConfirmVideo(heroEl, bgMode) {
   if (!v || !v.src) { fallbackReveal(heroEl); return; }
 
   if (bgMode) {
-    // スターリン用：overlay内に複製した映像をカードの背面に置く
+    // スターリン用：20秒映像を全面に流し、15秒の時点でカードを出す。終了後は最終フレームで静止。
     stalinBgVideo = v.cloneNode();
     stalinBgVideo.removeAttribute("id");
     stalinBgVideo.classList.remove("hidden");
     stalinBgVideo.classList.add("confirm-video-bg");
+    stalinBgVideo.src = "assets/stalin.mp4";
     $("overlay").appendChild(stalinBgVideo);
+    heroEl.style.opacity = "0"; // 最初の15秒は映像を全面に見せる
+
+    stalinShowTimer = setTimeout(() => {
+      heroEl.style.transition = "opacity .6s ease"; // 15秒の時点でカードを出す
+      heroEl.style.opacity = "1";
+    }, 15000);
 
     const finishBg = () => {
       stalinBgVideo.removeEventListener("ended", finishBg);
@@ -346,6 +355,7 @@ function tryPlayConfirmVideo(heroEl, bgMode) {
     const p2 = stalinBgVideo.play();
     if (p2 && p2.catch) p2.catch(() => {
       stalinBgVideo.removeEventListener("ended", finishBg);
+      clearTimeout(stalinShowTimer);
       stalinBgVideo.remove(); stalinBgVideo = null;
       fallbackReveal(heroEl);
     });
@@ -391,6 +401,7 @@ function resetConfirmReveal() {
   });
   const v = $("confirm-video");
   if (v) { try { v.pause(); } catch (e) {} v.classList.add("hidden"); }
+  if (stalinShowTimer) { clearTimeout(stalinShowTimer); stalinShowTimer = null; }
   if (stalinBgVideo) {
     try { stalinBgVideo.pause(); } catch (e) {}
     stalinBgVideo.remove();
