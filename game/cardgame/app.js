@@ -74,13 +74,8 @@ function backSVG(code) {
     // ソビエトの星（画像をcontainで中央配置）
     return '<div class="backpat" style="background:#8a1c28"><div class="backimg-contain" style="background-image:url(\'assets/su_star.png\')"></div></div>';
   } else if (s === "cn") {
-    // ★
-    body = '<rect width="100" height="150" fill="#231d3c"/>' +
-      '<circle cx="50" cy="75" r="30" fill="#8a2432" opacity=".85"/>' +
-      '<path d="' + starD(50, 75, 30) + '" fill="#e04848"/>' +
-      '<path d="' + starD(18, 32, 7) + '" fill="#e8c25a"/>' +
-      '<path d="' + starD(82, 32, 7) + '" fill="#e8c25a"/>' +
-      '<path d="' + starD(50, 20, 7) + '" fill="#e8c25a"/>';
+    // 中華蘇維埃共和国の紋章（画像をcontainで中央配置）
+    return '<div class="backpat" style="background:#8a1c28"><div class="backimg-contain" style="background-image:url(\'assets/cn_emblem.png\')"></div></div>';
   } else if (s === "us") {
     // 星条
     body = '<rect width="100" height="150" fill="#232b4e"/>' +
@@ -286,13 +281,71 @@ function bindCards() {
     el.onclick = () => flip(el);
   });
 }
-// ソ連の超有名キャラ：専用ジングル＋赤背景の確定演出
+// ソ連の超有名キャラ：他カードをフェードアウト→中央へ移動→ジングル＋赤演出（後日mp4差し替え用フック付き）
 const SOVIET_STAR = { stalin: true, lenin: true, trotsky: true };
-function playSoviet() {
+const CONFIRM_MOVE_MS = 550;
+const CONFIRM_SCALE = 1.9;
+const CONFIRM_VIDEO_SRC = "assets/confirm.mp4"; // ここにmp4を置けば自動で使われる
+
+function playSovietJingle() {
   if (state.muted) return;
   const a = $("soviet-jingle");
   try { a.currentTime = 0; a.play(); } catch (e) {}
 }
+
+// カードを画面中央へ移動＋拡大しつつ、他のカードをフェードアウトさせる確定演出
+function triggerConfirmReveal(el) {
+  const area = $("cards-area");
+  area.classList.add("confirm-active");
+  el.classList.add("confirm-hero");
+  const rect = el.getBoundingClientRect();
+  el.style.position = "fixed";
+  el.style.left = rect.left + "px";
+  el.style.top = rect.top + "px";
+  el.style.width = rect.width + "px";
+  el.style.height = rect.height + "px";
+  el.style.margin = "0";
+  el.style.zIndex = "90";
+  el.getBoundingClientRect(); // 強制リフロー
+
+  requestAnimationFrame(() => {
+    const newW = rect.width * CONFIRM_SCALE;
+    const newH = rect.height * CONFIRM_SCALE;
+    el.style.transition = "left .55s cubic-bezier(.2,.8,.2,1), top .55s cubic-bezier(.2,.8,.2,1), width .55s cubic-bezier(.2,.8,.2,1), height .55s cubic-bezier(.2,.8,.2,1)";
+    el.style.left = ((window.innerWidth - newW) / 2) + "px";
+    el.style.top = ((window.innerHeight - newH) / 2) + "px";
+    el.style.width = newW + "px";
+    el.style.height = newH + "px";
+  });
+
+  // 移動と同時にジングル＋赤演出（mp4を後から置けば下のtryでそちらも再生される）
+  playSovietJingle();
+  $("overlay").classList.add("soviet");
+  setTimeout(tryPlayConfirmVideo, CONFIRM_MOVE_MS);
+}
+
+function tryPlayConfirmVideo() {
+  const v = $("confirm-video");
+  if (!v) return;
+  v.classList.remove("hidden");
+  v.currentTime = 0;
+  const p = v.play();
+  if (p && p.catch) p.catch(() => { v.classList.add("hidden"); });
+}
+
+function resetConfirmReveal() {
+  $("cards-area").classList.remove("confirm-active");
+  document.querySelectorAll(".confirm-hero").forEach(el => {
+    el.classList.remove("confirm-hero");
+    el.style.position = ""; el.style.left = ""; el.style.top = "";
+    el.style.width = ""; el.style.height = ""; el.style.margin = "";
+    el.style.zIndex = ""; el.style.transition = "";
+  });
+  const v = $("confirm-video");
+  if (v) { try { v.pause(); } catch (e) {} v.classList.add("hidden"); }
+  $("overlay").classList.remove("soviet");
+}
+
 function flip(el) {
   if (el.classList.contains("flipped")) { showDetail(el.dataset.id); return; }
   const card = CARD_BY_ID[el.dataset.id];
@@ -300,8 +353,7 @@ function flip(el) {
   sFlip();
   if (SOVIET_STAR[card.id]) {
     el.classList.add("ssr-burst");
-    $("overlay").classList.add("soviet");
-    playSoviet();
+    setTimeout(() => triggerConfirmReveal(el), 550);
   } else if (card.r === "SSR") {
     el.classList.add("ssr-burst");
     setTimeout(sSSR, 150);
@@ -393,8 +445,8 @@ $("draw10").onclick = () => openPack(10);
 $("open-all").onclick = () => document.querySelectorAll("#cards-area .card:not(.flipped)").forEach((el, i) => setTimeout(() => flip(el), i * 130));
 $("close-overlay").onclick = () => {
   $("overlay").classList.add("hidden");
-  $("overlay").classList.remove("soviet");
   try { $("soviet-jingle").pause(); } catch (e) {}
+  resetConfirmReveal();
   renderDex();
 };
 $("detail").onclick = () => $("detail").classList.add("hidden");
