@@ -54,6 +54,7 @@ function starD(cx, cy, r) {
   }
   return "M" + pts.join(" L") + " Z";
 }
+const DE_CROSS_D = "M44.2,44.2a95,95 0 0 0-8.45-34.35h28.55a95,95 0 0 0-8.45,34.35a95,95 0 0 0 34.35-8.45v28.55a95,95 0 0 0-34.35-8.45a95,95 0 0 0 8.45,34.35h-28.55a95,95 0 0 0 8.45-34.35a95,95 0 0 0-34.35,8.45v-28.55a95,95 0 0 0 34.35,8.45z";
 function backSVG(code) {
   const s = BACK_STYLE[code] || "xx";
   let body = "";
@@ -69,12 +70,14 @@ function backSVG(code) {
       '<circle cx="50" cy="75" r="19" fill="#c04444"/>' +
       '<circle cx="50" cy="75" r="19" fill="none" stroke="#e8e8f0" stroke-width="1.2" opacity=".5"/>';
   } else if (s === "de") {
-    // 鉄十字
+    // ドイツ十字（Deutsches Kreuz）
     body = '<rect width="100" height="150" fill="#1a1f38"/>' +
-      '<rect x="10" y="14" width="80" height="4" fill="#d8dade" opacity=".3"/>' +
-      '<rect x="10" y="20" width="80" height="4" fill="#b03a3a" opacity=".3"/>' +
-      '<path d="M44 60 L36 25 L64 25 L56 60 L60 60 L95 61 L95 89 L60 81 L56 90 L64 125 L36 125 L44 90 L40 90 L5 89 L5 61 L40 69 Z" fill="#d8dade"/>' +
-      '<path d="M50 71 l6 6 -6 6 -6 -6 Z" fill="#1a1f38"/>';
+      '<g transform="translate(0,25)">' +
+      '<path d="' + DE_CROSS_D + '" stroke="#e8e8f0" stroke-width="19.7" fill="none"/>' +
+      '<path d="' + DE_CROSS_D + '" stroke="#0c0e14" stroke-width="10.7" fill="none"/>' +
+      '<path d="' + DE_CROSS_D + '" stroke="#e8e8f0" stroke-width="5.1" fill="none"/>' +
+      '<path d="' + DE_CROSS_D + '" fill="#0c0e14"/>' +
+      "</g>";
   } else if (s === "ru") {
     // 槌と鎌
     body = '<rect width="100" height="150" fill="#331a24"/>' +
