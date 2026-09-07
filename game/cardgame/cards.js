@@ -12,6 +12,9 @@ const RAW_CARDS = [
   ["mandela","ネルソン・マンデラ","SSR","政治","アパルトヘイトを廃止し国民融和を実現した南アフリカの英雄。"],
   ["che","チェ・ゲバラ","SSR","革命","キューバ革命の指導者。ゲリラの象徴として世界中で描かれ続けた。"],
   ["mlk","マーティン・ルーサー・キング・ジュニア","SSR","政治","公民権運動の指導者。「I have a dream」。"],
+  ["kimilsung","金日成","SSR","政治","朝鮮民主主義人民共和国の建国者。「主体思想」を掲げた。"],
+  ["kimjongil","金正日","SSR","政治","第2代総書記。先軍政治を進めた。"],
+  ["kimjongun","金正恩","SSR","政治","第3代総書記。"],
   ["einstein","アルベルト・アインシュタイン","SSR","科学","相対性理論を唱えた20世紀最大の物理学者。"],
   ["meiji","明治天皇","SSR","日本","明治維新の中心。近代日本の起点となった。"],
   ["gandhi","マハトマ・ガンディー","SSR","政治","非暴力・不服従でインド独立へ導いた。"],
@@ -135,6 +138,7 @@ const RAW_CARDS = [
   ["nitobe","新渡戸稲造","R","思想","『武士道』の著者。"],
   ["peron","フアン・ペロン","N","政治","アルゼンチンの大統領。エビータの夫として知られる。"],
   ["nasser","ガマール・アブドゥル＝ナーセル","N","政治","スエズ運河を国有化し、汎アラブ主義の英雄となったエジプト大統領。"],
+  ["hwang","黄長燁","N","政治","主体思想の理論家。後に亡命した。"],
   // ===== N =====
   ["columbus","クリストファー・コロンブス","N","冒険","新大陸に到達した航海者。"],
   ["magellan","フェルディナンド・マゼラン","N","冒険","世界周航の航海を率いた。"],
@@ -214,6 +218,7 @@ const COUNTRY = {
   mandela:"za", che:"cu", mlk:"us", wilhelm2:"de", ferdinand:"at", cixi:"cn",
   rutherford:"uk", tesla:"us", lawrence:"uk", wagner:"de", verne:"fr", turing:"uk",
   franco:"es", peron:"ar", nasser:"eg",
+  kimilsung:"kp", kimjongil:"kp", kimjongun:"kp", hwang:"kp",
   // N
   columbus:"it", magellan:"pt", cook:"uk", amundsen:"no", scott:"uk", livingstone:"uk", koch:"de", stevenson:"uk", ford:"us",
   rockefeller:"us", carnegie:"us", napoleon3:"fr", kondo:"jp", hiraga:"jp", sugita:"jp", okuma:"jp", yamagata:"jp", komura:"jp",
@@ -226,7 +231,7 @@ const COUNTRY = {
 const COUNTRY_NAME = {
   jp:"日本", de:"ドイツ", ru:"ロシア", cn:"中国", us:"アメリカ", uk:"イギリス", fr:"フランス", it:"イタリア",
   at:"オーストリア", in:"インド", tr:"トルコ", vn:"ベトナム", kr:"朝鮮", es:"スペイン", nl:"オランダ",
-  pt:"ポルトガル", no:"ノルウェー", ve:"ベネズエラ", za:"南アフリカ", cu:"キューバ", ar:"アルゼンチン", eg:"エジプト", xx:"その他",
+  pt:"ポルトガル", no:"ノルウェー", ve:"ベネズエラ", za:"南アフリカ", cu:"キューバ", ar:"アルゼンチン", eg:"エジプト", kp:"北朝鮮", xx:"その他",
 };
 
 // 裏面パターンのグループ（ここにない国は汎用デザイン）
