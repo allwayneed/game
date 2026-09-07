@@ -288,11 +288,12 @@ function bindCards() {
 //  - SSR全員：中央へバーンと登場。assets/ssr.mp4 を置けば映像も自動で流れる（無ければ飛ばしてそのまま見せる）
 const SOVIET_STAR = { stalin: true, lenin: true, trotsky: true };
 const CHINA_STAR = { mao: true, xijinping: true };
+const GERMANY_STAR = { hitler: true, himmler: true };
 const STALIN_HERO = { stalin: true };
 const CONFIRM_SCALE = 1.9;
 const SSR_VIDEO_SRC = "assets/ssr.mp4"; // SSR全員用の映像（後日用意）
-let stalinBgVideo = null;
-let stalinShowTimer = null;
+let bgVideoEl = null;
+let bgShowTimer = null;
 
 function playSovietJingle() {
   if (state.muted) return;
@@ -309,7 +310,11 @@ function playChinaJingle() {
 // カードごとの確定演出設定
 //  china: 映像はソ連のを使い回し（消音）、代わりにassets/china.mp3を鳴らす
 function confirmSpecFor(card) {
-  if (STALIN_HERO[card.id]) return { src: "assets/stalin.mp4", bg: true, soviet: true };
+  if (STALIN_HERO[card.id]) return { src: "assets/stalin.mp4", bg: true, revealAt: 15000, soviet: true };
+  // ヒトラー：33秒映像を背景に流し、終了5秒前(28秒)にカードを出し、最終フレームで静止（スターリンと同じ型）
+  if (card.id === "hitler") return { src: "assets/hitler.mp4", bg: true, revealAt: 28000, soviet: false };
+  // ヒムラー：21秒映像（末尾フェードアウト）を全面再生→終わったらカード表面をフェードイン
+  if (card.id === "himmler") return { src: "assets/himmler.mp4", bg: false, soviet: false };
   if (CHINA_STAR[card.id]) return { src: "assets/confirm.mp4", bg: false, china: true };
   if (SOVIET_STAR[card.id]) return { src: "assets/confirm.mp4", bg: false, soviet: true };
   if (card.r === "SSR") return { src: SSR_VIDEO_SRC, bg: false, soviet: false };
@@ -357,31 +362,31 @@ function tryPlayConfirmVideo(heroEl, spec) {
   }
 
   if (spec.bg) {
-    // スターリン用：20秒映像を全面に流し、15秒の時点でカードを出す。終了後は最終フレームで静止。
-    stalinBgVideo = v.cloneNode();
-    stalinBgVideo.removeAttribute("id");
-    stalinBgVideo.classList.remove("hidden");
-    stalinBgVideo.classList.add("confirm-video-bg");
-    stalinBgVideo.src = spec.src;
-    $("overlay").appendChild(stalinBgVideo);
-    heroEl.style.opacity = "0"; // 最初の15秒は映像を全面に見せる
+    // スターリン/ヒトラー型：映像を全面に流し、revealAt(ms)の時点でカードを出す。終了後は最終フレームで静止。
+    bgVideoEl = v.cloneNode();
+    bgVideoEl.removeAttribute("id");
+    bgVideoEl.classList.remove("hidden");
+    bgVideoEl.classList.add("confirm-video-bg");
+    bgVideoEl.src = spec.src;
+    $("overlay").appendChild(bgVideoEl);
+    heroEl.style.opacity = "0"; // revealAtまでは映像を全面に見せる
 
-    stalinShowTimer = setTimeout(() => {
-      heroEl.style.transition = "opacity .6s ease"; // 15秒の時点でカードを出す
+    bgShowTimer = setTimeout(() => {
+      heroEl.style.transition = "opacity .6s ease"; // revealAtの時点でカードを出す
       heroEl.style.opacity = "1";
-    }, 15000);
+    }, spec.revealAt || 0);
 
     const finishBg = () => {
-      stalinBgVideo.removeEventListener("ended", finishBg);
-      try { stalinBgVideo.pause(); } catch (e) {} // 最終フレームでそのまま停止
+      bgVideoEl.removeEventListener("ended", finishBg);
+      try { bgVideoEl.pause(); } catch (e) {} // 最終フレームでそのまま停止
     };
-    stalinBgVideo.addEventListener("ended", finishBg);
-    const p2 = stalinBgVideo.play();
+    bgVideoEl.addEventListener("ended", finishBg);
+    const p2 = bgVideoEl.play();
     if (p2 && p2.catch) p2.catch(() => {
-      stalinBgVideo.removeEventListener("ended", finishBg);
-      clearTimeout(stalinShowTimer);
-      stalinBgVideo.remove(); stalinBgVideo = null;
-      fallbackReveal(heroEl);
+      bgVideoEl.removeEventListener("ended", finishBg);
+      clearTimeout(bgShowTimer);
+      bgVideoEl.remove(); bgVideoEl = null;
+      fallbackReveal(heroEl, spec.china);
     });
     return;
   }
@@ -430,11 +435,11 @@ function endConfirmReveal() {
   const hero = document.querySelector(".confirm-hero");
   const first = hero ? hero.getBoundingClientRect() : null;
   const wasHidden = !!hero && hero.style.opacity === "0";
-  if (stalinShowTimer) { clearTimeout(stalinShowTimer); stalinShowTimer = null; }
-  if (stalinBgVideo) {
-    try { stalinBgVideo.pause(); } catch (e) {}
-    stalinBgVideo.remove();
-    stalinBgVideo = null;
+  if (bgShowTimer) { clearTimeout(bgShowTimer); bgShowTimer = null; }
+  if (bgVideoEl) {
+    try { bgVideoEl.pause(); } catch (e) {}
+    bgVideoEl.remove();
+    bgVideoEl = null;
   }
   const v = $("confirm-video");
   if (v) { try { v.pause(); } catch (e) {} v.classList.add("hidden"); }
@@ -476,10 +481,10 @@ function flip(el) {
   const card = CARD_BY_ID[el.dataset.id];
   el.classList.add("flipped");
   sFlip();
-  if (SOVIET_STAR[card.id] || CHINA_STAR[card.id] || card.r === "SSR") {
-    // ソ連3人＋中国2人＋SSR全員: 中央移動の確定演出
+  if (SOVIET_STAR[card.id] || CHINA_STAR[card.id] || GERMANY_STAR[card.id] || card.r === "SSR") {
+    // ソ連3人＋中国2人＋ドイツ2人＋SSR全員: 中央移動の確定演出
     el.classList.add("ssr-burst");
-    if (!SOVIET_STAR[card.id] && !CHINA_STAR[card.id]) setTimeout(sSSR, 150);
+    if (!SOVIET_STAR[card.id] && !CHINA_STAR[card.id] && !GERMANY_STAR[card.id]) setTimeout(sSSR, 150);
     if (!document.querySelector(".confirm-hero")) triggerConfirmReveal(el);
   } else if (card.r === "SR") {
     setTimeout(sNew, 100);
