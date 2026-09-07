@@ -235,4 +235,4 @@ const COUNTRY_NAME = {
 };
 
 // 裏面パターンのグループ（ここにない国は汎用デザイン）
-const BACK_STYLE = { jp:"jp", de:"de", ru:"ru", cn:"cn", us:"us", uk:"uk", fr:"fr", it:"it" };
+const BACK_STYLE = { jp:"jp", de:"de", ru:"ru", cn:"cn", us:"us", uk:"uk", fr:"fr", it:"it", kp:"kp" };

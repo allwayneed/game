@@ -70,6 +70,9 @@ function backSVG(code) {
       '<path d="' + DE_CROSS_D + '" stroke="#e8e8f0" stroke-width="5.1" fill="none"/>' +
       '<path d="' + DE_CROSS_D + '" fill="#0c0e14"/>' +
       "</g>";
+  } else if (s === "kp") {
+    // 北朝鮮の軍旗（画像をカードサイズにcover）
+    return '<div class="backpat backimg" style="background-image:url(\'assets/kp_back.jpg\')"></div>';
   } else if (s === "ru") {
     // ソビエトの星（画像をcontainで中央配置）
     return '<div class="backpat" style="background:#8a1c28"><div class="backimg-contain" style="background-image:url(\'assets/su_star.png\')"></div></div>';
