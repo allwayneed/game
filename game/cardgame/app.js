@@ -307,12 +307,20 @@ function playChinaJingle() {
   try { a.currentTime = 0; a.play(); } catch (e) {}
 }
 
+// spec.audio = { id, start } : 指定音声をstart秒から鳴らす（エーリカ等）
+function playCardJingle(audioSpec) {
+  if (state.muted || !audioSpec) return;
+  const a = $(audioSpec.id);
+  try { a.currentTime = audioSpec.start || 0; a.play(); } catch (e) {}
+}
+
 // カードごとの確定演出設定
 //  china: 映像はソ連のを使い回し（消音）、代わりにassets/china.mp3を鳴らす
 function confirmSpecFor(card) {
   if (STALIN_HERO[card.id]) return { src: "assets/stalin.mp4", bg: true, revealAt: 15000, soviet: true };
   // ヒトラー：33秒映像を背景に流し、終了5秒前(28秒)にカードを出し、最終フレームで静止（スターリンと同じ型）
-  if (card.id === "hitler") return { src: "assets/hitler.mp4", bg: true, revealAt: 28000, soviet: false };
+  // 映像は消音し、代わりにエーリカ（assets/erika.mp3）を曲の1:10から鳴らし始める
+  if (card.id === "hitler") return { src: "assets/hitler.mp4", bg: true, revealAt: 28000, soviet: false, audio: { id: "erika-jingle", start: 70 } };
   // ヒムラー：21秒映像（末尾フェードアウト）を全面再生→終わったらカード表面をフェードイン
   if (card.id === "himmler") return { src: "assets/himmler.mp4", bg: false, soviet: false };
   if (CHINA_STAR[card.id]) return { src: "assets/confirm.mp4", bg: false, china: true };
@@ -381,12 +389,15 @@ function tryPlayConfirmVideo(heroEl, spec) {
       try { bgVideoEl.pause(); } catch (e) {} // 最終フレームでそのまま停止
     };
     bgVideoEl.addEventListener("ended", finishBg);
+    if (spec.audio) { bgVideoEl.muted = true; playCardJingle(spec.audio); } // エーリカ等を映像の代わりに鳴らす
     const p2 = bgVideoEl.play();
     if (p2 && p2.catch) p2.catch(() => {
       bgVideoEl.removeEventListener("ended", finishBg);
       clearTimeout(bgShowTimer);
       bgVideoEl.remove(); bgVideoEl = null;
-      fallbackReveal(heroEl, spec.china);
+      if (spec.china) fallbackReveal(heroEl, true);
+      else if (spec.soviet) fallbackReveal(heroEl);
+      else fallbackReveal(heroEl, false, spec.audio); // 赤背景＋指定音声
     });
     return;
   }
@@ -424,10 +435,12 @@ function tryPlayConfirmVideo(heroEl, spec) {
   }
 }
 
-function fallbackReveal(heroEl, useChina) {
+function fallbackReveal(heroEl, useChina, audioSpec) {
   heroEl.style.opacity = "1";
-  if (useChina) playChinaJingle(); else playSovietJingle();
-  $("overlay").classList.add("soviet"); // 赤背景は中ソ共通
+  if (useChina) playChinaJingle();
+  else if (audioSpec) playCardJingle(audioSpec);
+  else playSovietJingle();
+  $("overlay").classList.add("soviet"); // 赤背景は共通
 }
 
 // 確定演出を解除してカードを元の位置へ戻す（オーバーレイは閉じない）
@@ -445,6 +458,7 @@ function endConfirmReveal() {
   if (v) { try { v.pause(); } catch (e) {} v.classList.add("hidden"); }
   try { $("soviet-jingle").pause(); } catch (e) {}
   try { $("china-jingle").pause(); } catch (e) {}
+  try { $("erika-jingle").pause(); } catch (e) {}
   $("cards-area").classList.remove("confirm-active");
   $("overlay").classList.remove("soviet");
   if (!hero) return;
@@ -578,6 +592,7 @@ $("close-overlay").onclick = () => {
   $("overlay").classList.add("hidden");
   try { $("soviet-jingle").pause(); } catch (e) {}
   try { $("china-jingle").pause(); } catch (e) {}
+  try { $("erika-jingle").pause(); } catch (e) {}
   $("overlay").classList.remove("soviet");
   renderDex();
 };
