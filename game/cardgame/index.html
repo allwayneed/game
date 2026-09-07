@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>近代史カードパック</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>🏛️ 近代史カードパック</h1>
+  <div class="tickets">
+    <button id="mute" class="icon-btn" title="サウンド ON/OFF">🔊</button>
+    <span id="ticket-count" class="ticket-pill">🎫 ×5</span>
+    <span id="ticket-timer" class="ticket-timer"></span>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="gacha">🎒 開封</button>
+  <button class="tab" data-tab="dex" id="dex-tab">📖 図鑑 <span id="dex-pct"></span></button>
+</nav>
+
+<main>
+  <!-- 開封 -->
+  <section id="gacha" class="panel active">
+    <div class="pack-visual" id="pack-visual">
+      <div class="pack-body">
+        <div class="pack-star">★</div>
+        <div class="pack-label">近代史<br>カードパック</div>
+      </div>
+    </div>
+    <div class="gacha-buttons">
+      <button id="draw1" class="btn">1回 開封<br><small>チケット1枚</small></button>
+      <button id="draw10" class="btn btn-gold">10連 開封<br><small>チケット2枚／SR以上1枚保証</small></button>
+    </div>
+    <p class="note">チケットは3分ごとに1枚回復（最大5枚）。50連天井：SSRが出るまでカウント。<br>カードの肖像と紹介文はWikipediaから自動で取得されます。</p>
+    <div class="stats">
+      <span>開封数: <b id="stat-packs">0</b></span>
+      <span>天井まで: <b id="stat-pity">50</b></span>
+      <button id="reset" class="link-btn">データ削除</button>
+    </div>
+  </section>
+
+  <!-- 図鑑 -->
+  <section id="dex" class="panel">
+    <div class="dex-head">
+      <div class="progress"><div id="progress-bar"></div></div>
+      <span id="progress-text">0 / 0（0%）</span>
+    </div>
+    <div class="filters" id="filters"></div>
+    <div id="dex-grid" class="dex-grid"></div>
+  </section>
+</main>
+
+<footer>肖像・紹介文は <a href="https://ja.wikipedia.org/" target="_blank" rel="noopener">Wikipedia</a> より（CC BY-SA）。歴史を学ぶきっかけとしてお楽しみください。</footer>
+
+<!-- 開封結果オーバーレイ -->
+<div id="overlay" class="overlay hidden">
+  <div class="overlay-head">
+    <span id="overlay-title">開封結果</span>
+    <div class="overlay-actions">
+      <button id="open-all" class="btn btn-small">すべてめくる</button>
+      <button id="close-overlay" class="btn btn-small">閉じる</button>
+    </div>
+  </div>
+  <div id="cards-area" class="cards-area"></div>
+</div>
+
+<!-- カード詳細 -->
+<div id="detail" class="overlay hidden">
+  <div class="detail-box" id="detail-box"></div>
+</div>
+
+<script src="cards.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
