@@ -8,6 +8,7 @@ const RAW_CARDS = [
   ["churchill","ウィンストン・チャーチル","SSR","政治","イギリス首相。大戦下の国民を鼓舞し続けた。"],
   ["stalin","ヨシフ・スターリン","USSR","政治","ソ連の最高指導者。粛清と五カ年計画で国家を改造した。"],
   ["mao","毛沢東","SSR","政治","中華人民共和国の建国者。"],
+  ["xijinping","習近平","SSR","政治","中華人民共和国の最高指導者。「中華民族の偉大な復興」を掲げる。"],
   ["einstein","アルベルト・アインシュタイン","SSR","科学","相対性理論を唱えた20世紀最大の物理学者。"],
   ["meiji","明治天皇","SSR","日本","明治維新の中心。近代日本の起点となった。"],
   ["gandhi","マハトマ・ガンディー","SSR","政治","非暴力・不服従でインド独立へ導いた。"],
@@ -192,7 +193,7 @@ const COUNTRY = {
   anthony:"us", keller:"us", anne:"nl", sugihara:"jp", orwell:"uk", neru:"in", hochimin:"vn", li:"cn", yuan:"cn", locke:"uk",
   nietzsche:"de", montessori:"it", nitobe:"jp",
   // ソ連 追加
-  zhukov:"ru", gagarin:"ru", khrushchev:"ru", brezhnev:"ru", gorbachev:"ru",
+  zhukov:"ru", gagarin:"ru", khrushchev:"ru", brezhnev:"ru", gorbachev:"ru", xijinping:"cn",
   korolev:"ru", kalashnikov:"ru", gorky:"ru", shostakovich:"ru",
   // N
   columbus:"it", magellan:"pt", cook:"uk", amundsen:"no", scott:"uk", livingstone:"uk", koch:"de", stevenson:"uk", ford:"us",

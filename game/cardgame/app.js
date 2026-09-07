@@ -287,24 +287,33 @@ function bindCards() {
 //  - レーニン・トロツキー：15秒映像を全面再生→終わったらカード表面をフェードイン
 //  - SSR全員：中央へバーンと登場。assets/ssr.mp4 を置けば映像も自動で流れる（無ければ飛ばしてそのまま見せる）
 const SOVIET_STAR = { stalin: true, lenin: true, trotsky: true };
+const CHINA_STAR = { mao: true, xijinping: true };
 const STALIN_HERO = { stalin: true };
 const CONFIRM_SCALE = 1.9;
 const SSR_VIDEO_SRC = "assets/ssr.mp4"; // SSR全員用の映像（後日用意）
 let stalinBgVideo = null;
 let stalinShowTimer = null;
 
-// カードごとの確定演出設定
-function confirmSpecFor(card) {
-  if (STALIN_HERO[card.id]) return { src: "assets/stalin.mp4", bg: true, soviet: true };
-  if (SOVIET_STAR[card.id]) return { src: "assets/confirm.mp4", bg: false, soviet: true };
-  if (card.r === "SSR") return { src: SSR_VIDEO_SRC, bg: false, soviet: false };
-  return null;
-}
-
 function playSovietJingle() {
   if (state.muted) return;
   const a = $("soviet-jingle");
   try { a.currentTime = 0; a.play(); } catch (e) {}
+}
+
+function playChinaJingle() {
+  if (state.muted) return;
+  const a = $("china-jingle");
+  try { a.currentTime = 0; a.play(); } catch (e) {}
+}
+
+// カードごとの確定演出設定
+//  china: 映像はソ連のを使い回し（消音）、代わりにassets/china.mp3を鳴らす
+function confirmSpecFor(card) {
+  if (STALIN_HERO[card.id]) return { src: "assets/stalin.mp4", bg: true, soviet: true };
+  if (CHINA_STAR[card.id]) return { src: "assets/confirm.mp4", bg: false, china: true };
+  if (SOVIET_STAR[card.id]) return { src: "assets/confirm.mp4", bg: false, soviet: true };
+  if (card.r === "SSR") return { src: SSR_VIDEO_SRC, bg: false, soviet: false };
+  return null;
 }
 
 // カードを画面中央へ移動＋拡大
@@ -377,9 +386,10 @@ function tryPlayConfirmVideo(heroEl, spec) {
     return;
   }
 
-  // 全面再生モード（レーニン等 / SSR）
+  // 全面再生モード（レーニン等 / SSR / 中国の2人）
   heroEl.style.opacity = "0"; // 映像が終わるまでカードは隠す
   v.src = spec.src;
+  v.muted = !!spec.china; // 中国の2人は動画の音を消してassets/china.mp3を鳴らす
   v.classList.add("hidden"); // 実際に再生が始まるまで全面には出さない（404などで一瞬黒くならないように）
   v.currentTime = 0;
 
@@ -394,6 +404,8 @@ function tryPlayConfirmVideo(heroEl, spec) {
   v.addEventListener("playing", onPlaying);
   v.addEventListener("ended", finish);
 
+  if (spec.china) playChinaJingle(); // 映像と一緒に中国のmp3を鳴らす（映像終了後も「閉じる」まで流れ続ける）
+
   const p = v.play();
   if (p && p.catch) {
     p.catch(() => {
@@ -402,14 +414,15 @@ function tryPlayConfirmVideo(heroEl, spec) {
       v.classList.add("hidden");
       heroEl.style.opacity = "1";
       if (spec.soviet) fallbackReveal(heroEl);
+      else if (spec.china) fallbackReveal(heroEl, true); // 赤背景＋mp3はそのまま
     });
   }
 }
 
-function fallbackReveal(heroEl) {
+function fallbackReveal(heroEl, useChina) {
   heroEl.style.opacity = "1";
-  playSovietJingle();
-  $("overlay").classList.add("soviet");
+  if (useChina) playChinaJingle(); else playSovietJingle();
+  $("overlay").classList.add("soviet"); // 赤背景は中ソ共通
 }
 
 // 確定演出を解除してカードを元の位置へ戻す（オーバーレイは閉じない）
@@ -426,6 +439,7 @@ function endConfirmReveal() {
   const v = $("confirm-video");
   if (v) { try { v.pause(); } catch (e) {} v.classList.add("hidden"); }
   try { $("soviet-jingle").pause(); } catch (e) {}
+  try { $("china-jingle").pause(); } catch (e) {}
   $("cards-area").classList.remove("confirm-active");
   $("overlay").classList.remove("soviet");
   if (!hero) return;
@@ -462,10 +476,10 @@ function flip(el) {
   const card = CARD_BY_ID[el.dataset.id];
   el.classList.add("flipped");
   sFlip();
-  if (SOVIET_STAR[card.id] || card.r === "SSR") {
-    // ソ連3人＋SSR全員: 中央移動の確定演出
+  if (SOVIET_STAR[card.id] || CHINA_STAR[card.id] || card.r === "SSR") {
+    // ソ連3人＋中国2人＋SSR全員: 中央移動の確定演出
     el.classList.add("ssr-burst");
-    if (!SOVIET_STAR[card.id]) setTimeout(sSSR, 150);
+    if (!SOVIET_STAR[card.id] && !CHINA_STAR[card.id]) setTimeout(sSSR, 150);
     if (!document.querySelector(".confirm-hero")) triggerConfirmReveal(el);
   } else if (card.r === "SR") {
     setTimeout(sNew, 100);
@@ -558,6 +572,7 @@ $("close-overlay").onclick = () => {
   if (document.querySelector(".confirm-hero")) { endConfirmReveal(); return; }
   $("overlay").classList.add("hidden");
   try { $("soviet-jingle").pause(); } catch (e) {}
+  try { $("china-jingle").pause(); } catch (e) {}
   $("overlay").classList.remove("soviet");
   renderDex();
 };
