@@ -59,16 +59,8 @@ function backSVG(code) {
   const s = BACK_STYLE[code] || "xx";
   let body = "";
   if (s === "jp") {
-    // 旭日
-    let rays = "";
-    for (let i = 0; i < 16; i++) {
-      const a = (i * 22.5 - 90) * Math.PI / 180, w = 6.5 * Math.PI / 180;
-      rays += '<path d="M50 75 L' + (50 + 150 * Math.cos(a - w)).toFixed(1) + " " + (75 + 150 * Math.sin(a - w)).toFixed(1) +
-              " L" + (50 + 150 * Math.cos(a + w)).toFixed(1) + " " + (75 + 150 * Math.sin(a + w)).toFixed(1) + ' Z" fill="#b03a3a" opacity=".9"/>';
-    }
-    body = '<rect width="100" height="150" fill="#1d2346"/>' + rays +
-      '<circle cx="50" cy="75" r="19" fill="#c04444"/>' +
-      '<circle cx="50" cy="75" r="19" fill="none" stroke="#e8e8f0" stroke-width="1.2" opacity=".5"/>';
+    // 旭日旗（画像をカードサイズにcut）
+    return '<div class="backpat backimg" style="background-image:url(\'assets/jp_back.jpg\')"></div>';
   } else if (s === "de") {
     // ドイツ十字（Deutsches Kreuz）
     body = '<rect width="100" height="150" fill="#1a1f38"/>' +
@@ -79,12 +71,8 @@ function backSVG(code) {
       '<path d="' + DE_CROSS_D + '" fill="#0c0e14"/>' +
       "</g>";
   } else if (s === "ru") {
-    // 槌と鎌
-    body = '<rect width="100" height="150" fill="#331a24"/>' +
-      '<circle cx="50" cy="75" r="34" fill="#8a2432"/>' +
-      '<path d="M66 48 A30 30 0 1 0 66 102" stroke="#e8c25a" stroke-width="7" fill="none"/>' +
-      '<line x1="64" y1="100" x2="55" y2="112" stroke="#e8c25a" stroke-width="7" stroke-linecap="round"/>' +
-      '<g transform="rotate(-40 50 75)"><rect x="45" y="38" width="7" height="74" fill="#e8c25a"/><rect x="32" y="38" width="34" height="14" fill="#e8c25a"/></g>';
+    // ソビエトの星（画像をcontainで中央配置）
+    return '<div class="backpat" style="background:#8a1c28"><div class="backimg-contain" style="background-image:url(\'assets/su_star.png\')"></div></div>';
   } else if (s === "cn") {
     // ★
     body = '<rect width="100" height="150" fill="#231d3c"/>' +

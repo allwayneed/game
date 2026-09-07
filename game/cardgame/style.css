@@ -136,6 +136,8 @@ main { padding: 10px 16px; }
 .face.back .q { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 36px; color: rgba(232,232,240,.25); text-shadow: 0 2px 8px rgba(0,0,0,.6); }
 .thumbwrap { width: 100%; aspect-ratio: 4/5; }
 .thumbwrap svg { width: 100%; height: 100%; display: block; }
+.backimg { width: 100%; height: 100%; background-size: cover; background-position: center; }
+.backimg-contain { width: 100%; height: 100%; background-size: 62%; background-position: center; background-repeat: no-repeat; }
 .dex-card.locked .thumbwrap { filter: brightness(.45) saturate(.75); }
 .dphotowrap { width: 100%; aspect-ratio: 1/1; overflow: hidden; background: #171a26; }
 .dphotowrap svg { width: 100%; height: 100%; display: block; }
