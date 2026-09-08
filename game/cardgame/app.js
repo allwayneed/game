@@ -288,7 +288,7 @@ function bindCards() {
 // 確定演出（カードが画面中央へ移動する演出）
 //  - スターリン：20秒映像を背景に流し、15秒の時点でカードを出し、終わったら最終フレームで静止
 //  - レーニン・トロツキー：15秒映像を全面再生→終わったらカード表面をフェードイン
-//  - SSR全員: ミサイル発射映像（assets/kp_confirm.mp4）で期待させてからカード登場（キム一族以外はハズレ扱いのフェイクアウト）
+//  - 一般SSR: 映像なしで中央へバーンと登場（ミサイル発射映像は北朝鮮カード専用）
 //  - 北朝鮮3代（大当たり）: ミサイル発射→地球滅亡（assets/kp_doom.mp4）の連続シークエンス。滅亡の曲（assets/kongyo.mp3）を閉じるまでループ
 const SOVIET_STAR = { stalin: true, lenin: true, trotsky: true };
 const CHINA_STAR = { mao: true, xijinping: true };
@@ -334,8 +334,7 @@ function confirmSpecFor(card) {
   if (NK_STAR[card.id]) return { src: "assets/kp_confirm.mp4", nextSrc: "assets/kp_doom.mp4", bg: false, kp: true, audio: { id: "kongyo-jingle", start: 0 } };
   // 黄長燁（ハズレ）: ミサイル発射映像だけ。SSRジングルも鳴らして極限まで期待させる
   if (NK_MISS[card.id]) return { src: "assets/kp_confirm.mp4", bg: false, soviet: false };
-  // SSR（キム一族以外はハズレ）: ミサイル発射映像だけで期待させてカード登場
-  if (card.r === "SSR") return { src: "assets/kp_confirm.mp4", bg: false, soviet: false };
+  // 一般SSRは映像なし: 中央へバーンと登場するだけ（ミサイルは北朝鮮カード専用演出）
   return null;
 }
 
