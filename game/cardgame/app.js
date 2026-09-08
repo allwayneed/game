@@ -329,7 +329,7 @@ function confirmSpecFor(card) {
   if (card.id === "himmler") return { src: "assets/himmler.mp4", bg: false, soviet: false };
   if (CHINA_STAR[card.id]) return { src: "assets/confirm.mp4", bg: false, china: true };
   if (SOVIET_STAR[card.id]) return { src: "assets/confirm.mp4", bg: false, soviet: true };
-  // 北朝鮮3代（大当たり）: ミサイル発射→地球滅亡の連続シークエンス。滅亡の曲を演出開始から閉じるまでループ
+  // 北朝鮮3代（大当たり）: 発射（全面15秒）→滅亡開始でカード＋閉じるボタン登場、滅亡映像は背景で流す。曲は閉じるまでループ
   if (NK_STAR[card.id]) return { src: "assets/kp_confirm.mp4", nextSrc: "assets/kp_doom.mp4", bg: false, kp: true, audio: { id: "kongyo-jingle", start: 0 } };
   // SSR（キム一族以外はハズレ）: ミサイル発射映像だけで期待させてカード登場
   if (card.r === "SSR") return { src: "assets/kp_confirm.mp4", bg: false, soviet: false };
@@ -429,9 +429,24 @@ function tryPlayConfirmVideo(heroEl, spec) {
     if (spec.nextSrc) {
       const next = spec.nextSrc;
       spec.nextSrc = null;
-      v.src = next;
-      const pn = v.play();
-      if (pn && pn.catch) pn.catch(finish); // 滅亡映像が無ければそこでカードを出す
+      // 地球滅亡が始まったら全面映像をしまい、カードと閉じるボタンを出したまま
+      // 滅亡映像は背景モード（カードの裏）で流し、最終フレームで静止（スターリン型）
+      v.removeEventListener("playing", onPlaying);
+      v.removeEventListener("ended", onEnded);
+      v.classList.add("hidden");
+      heroEl.style.transition = "opacity .6s ease";
+      heroEl.style.opacity = "1";
+      bgVideoEl = v.cloneNode();
+      bgVideoEl.removeAttribute("id");
+      bgVideoEl.classList.remove("hidden");
+      bgVideoEl.classList.add("confirm-video-bg");
+      bgVideoEl.muted = true;
+      bgVideoEl.src = next;
+      $("overlay").appendChild(bgVideoEl);
+      const freezeDoom = () => { try { bgVideoEl.pause(); } catch (e) {} };
+      bgVideoEl.addEventListener("ended", freezeDoom);
+      const pd = bgVideoEl.play();
+      if (pd && pd.catch) pd.catch(() => { try { bgVideoEl.remove(); } catch (e) {} bgVideoEl = null; }); // 再生不可なら背景なし
       return;
     }
     finish();
