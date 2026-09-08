@@ -288,14 +288,14 @@ function bindCards() {
 // 確定演出（カードが画面中央へ移動する演出）
 //  - スターリン：20秒映像を背景に流し、15秒の時点でカードを出し、終わったら最終フレームで静止
 //  - レーニン・トロツキー：15秒映像を全面再生→終わったらカード表面をフェードイン
-//  - SSR全員：中央へバーンと登場。assets/ssr.mp4 を置けば映像も自動で流れる（無ければ飛ばしてそのまま見せる）
+//  - SSR全員: ミサイル発射映像（assets/kp_confirm.mp4）で期待させてからカード登場（キム一族以外はハズレ扱いのフェイクアウト）
+//  - 北朝鮮3代（大当たり）: ミサイル発射→地球滅亡（assets/kp_doom.mp4）の連続シークエンス。滅亡の曲（assets/kongyo.mp3）を閉じるまでループ
 const SOVIET_STAR = { stalin: true, lenin: true, trotsky: true };
 const CHINA_STAR = { mao: true, xijinping: true };
 const GERMANY_STAR = { hitler: true, himmler: true };
 const NK_STAR = { kimilsung: true, kimjongil: true, kimjongun: true }; // 北朝鮮3代: コンギョ＋ミサイル映像（後日素材追加）
 const STALIN_HERO = { stalin: true };
 const CONFIRM_SCALE = 1.9;
-const SSR_VIDEO_SRC = "assets/ssr.mp4"; // SSR全員用の映像（後日用意）
 let bgVideoEl = null;
 let bgShowTimer = null;
 
@@ -329,10 +329,10 @@ function confirmSpecFor(card) {
   if (card.id === "himmler") return { src: "assets/himmler.mp4", bg: false, soviet: false };
   if (CHINA_STAR[card.id]) return { src: "assets/confirm.mp4", bg: false, china: true };
   if (SOVIET_STAR[card.id]) return { src: "assets/confirm.mp4", bg: false, soviet: true };
-  // 北朝鮮3代: ミサイル発射→地球爆破の映像（消音）＋コンギョ（assets/kongyo.mp3）を閉じるまでループ
-  if (NK_STAR[card.id]) return { src: "assets/kp_confirm.mp4", bg: false, kp: true, audio: { id: "kongyo-jingle", start: 0 } };
-  // SSR全員: カードは即登場し、映像は背景として閉じるまで流れ続ける
-  if (card.r === "SSR") return { src: SSR_VIDEO_SRC, bg: false, soviet: false, ssrBg: true };
+  // 北朝鮮3代（大当たり）: ミサイル発射→地球滅亡の連続シークエンス。滅亡の曲を演出開始から閉じるまでループ
+  if (NK_STAR[card.id]) return { src: "assets/kp_confirm.mp4", nextSrc: "assets/kp_doom.mp4", bg: false, kp: true, audio: { id: "kongyo-jingle", start: 0 } };
+  // SSR（キム一族以外はハズレ）: ミサイル発射映像だけで期待させてカード登場
+  if (card.r === "SSR") return { src: "assets/kp_confirm.mp4", bg: false, soviet: false };
   return null;
 }
 
@@ -369,26 +369,10 @@ function triggerConfirmReveal(el) {
 function tryPlayConfirmVideo(heroEl, spec) {
   const v = $("confirm-video");
 
-  // 映像なし（SSRでassets/ssr.mp4がまだ無い等）: カードは見えたまま中央にバーン
+  // 映像なし/再生要素が無い: カードは見えたまま中央にバーン
   if (!spec || !spec.src || !v) {
     heroEl.style.opacity = "1";
     if (spec && spec.soviet) fallbackReveal(heroEl); // ソ連3人は赤背景＋ジングルにフォールバック
-    return;
-  }
-
-  if (spec.ssrBg) {
-    // SSR: カードは即登場。映像は背景としてループ再生し「閉じる」まで流れ続ける
-    heroEl.style.opacity = "1";
-    bgVideoEl = v.cloneNode();
-    bgVideoEl.removeAttribute("id");
-    bgVideoEl.classList.remove("hidden");
-    bgVideoEl.classList.add("confirm-video-bg");
-    bgVideoEl.muted = true;
-    bgVideoEl.loop = true;
-    bgVideoEl.src = spec.src;
-    $("overlay").appendChild(bgVideoEl);
-    const pSSR = bgVideoEl.play();
-    if (pSSR && pSSR.catch) pSSR.catch(() => { bgVideoEl.remove(); bgVideoEl = null; }); // 再生不可なら背景なしでそのまま
     return;
   }
 
@@ -435,22 +419,33 @@ function tryPlayConfirmVideo(heroEl, spec) {
   const onPlaying = () => v.classList.remove("hidden");
   const finish = () => {
     v.removeEventListener("playing", onPlaying);
-    v.removeEventListener("ended", finish);
+    v.removeEventListener("ended", onEnded);
     v.classList.add("hidden");
     heroEl.style.transition = "opacity .6s ease";
     heroEl.style.opacity = "1";
   };
+  // 金族は「発射」の後に「地球滅亡」を続けて流す（大当たりシークエンス）
+  const onEnded = () => {
+    if (spec.nextSrc) {
+      spec.nextSrc = null;
+      v.src = spec.nextSrc;
+      const pn = v.play();
+      if (pn && pn.catch) pn.catch(finish); // 滅亡映像が無ければそこでカードを出す
+      return;
+    }
+    finish();
+  };
   v.addEventListener("playing", onPlaying);
-  v.addEventListener("ended", finish);
+  v.addEventListener("ended", onEnded);
 
   if (spec.china) playChinaJingle(); // 映像と一緒に中国のmp3を鳴らす（映像終了後も「閉じる」まで流れ続ける）
-  if (spec.kp) playCardJingle(spec.audio); // コンギョを鳴らす（loop属性で「閉じる」まで流れ続ける）
+  if (spec.kp) playCardJingle(spec.audio); // 滅亡の曲を演出開始から「閉じる」まで流し続ける（loop属性）
 
   const p = v.play();
   if (p && p.catch) {
     p.catch(() => {
       v.removeEventListener("playing", onPlaying);
-      v.removeEventListener("ended", finish);
+      v.removeEventListener("ended", onEnded);
       v.classList.add("hidden");
       heroEl.style.opacity = "1";
       if (spec.soviet) fallbackReveal(heroEl);
