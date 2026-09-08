@@ -186,13 +186,6 @@ const RAW_CARDS = [
   ["cavour","カミッロ・カヴール","N","政治","イタリア統一を主導した首相。"],
   ["mazzini","ジュゼッペ・マッツィーニ","N","革命","イタリア民族主義の思想家。"],
   ["bolivar","シモン・ボリバル","N","革命","南米独立の解放者。"],
-];
-
-const CARDS = RAW_CARDS.map(([id, n, r, t, d, w]) => ({ id, n, r, t, d, w: w || n }));
-const CARD_BY_ID = Object.fromEntries(CARDS.map(c => [c.id, c]));
-const BY_RARITY = { USSR: [], SSR: [], SR: [], R: [], N: [] };
-CARDS.forEach(c => BY_RARITY[c.r].push(c));
-const TAGS = ["全て", ...new Set(CARDS.map(c => c.t))
   // ===== 追加（2026-09-08 第2弾: ソ連・日本・ドイツ・主要国）=====
   // --- ソ連 ---
   ["sakharov","アンドレイ・サハロフ","SR","科学","ソ連水爆の父にして人権活動家。ノーベル平和賞を獄中から受けた。"],
@@ -259,6 +252,12 @@ const TAGS = ["全て", ...new Set(CARDS.map(c => c.t))
   ["puyi","溥儀","N","政治","清朝最後の皇帝。満州国の執政を経て、園丁として余生を送った。","愛新覚羅溥儀"],
   ["jiangqing","江青","N","政治","毛沢東の夫人にして「四人組」の中心。法廷で咆哮した元女優。"],
 ];
+
+const CARDS = RAW_CARDS.map(([id, n, r, t, d, w]) => ({ id, n, r, t, d, w: w || n }));
+const CARD_BY_ID = Object.fromEntries(CARDS.map(c => [c.id, c]));
+const BY_RARITY = { USSR: [], SSR: [], SR: [], R: [], N: [] };
+CARDS.forEach(c => BY_RARITY[c.r].push(c));
+const TAGS = ["全て", ...new Set(CARDS.map(c => c.t))];
 
 // ----- 国データ（裏面デザイン・詳細表示用） -----
 const COUNTRY = {
