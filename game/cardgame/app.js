@@ -531,11 +531,7 @@ function renderDex() {
   $("progress-bar").style.width = pct + "%";
   $("progress-text").textContent = ownedCount + " / " + CARDS.length + "（" + pct + "%）";
   $("dex-pct").textContent = pct + "%";
-  const list = CARDS.filter(c =>
-    (filter === "全て" || c.t === filter) &&
-    // シークレット国のカードは引くまで図鑑に表示しない
-    (state.owned[c.id] || !SECRET_COUNTRY[COUNTRY[c.id]])
-  );
+  const list = CARDS.filter(c => filter === "全て" || c.t === filter);
   const grid = $("dex-grid");
   grid.innerHTML = list.map(c => {
     const lv = state.owned[c.id] || 0;
