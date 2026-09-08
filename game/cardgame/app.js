@@ -427,8 +427,9 @@ function tryPlayConfirmVideo(heroEl, spec) {
   // 金族は「発射」の後に「地球滅亡」を続けて流す（大当たりシークエンス）
   const onEnded = () => {
     if (spec.nextSrc) {
+      const next = spec.nextSrc;
       spec.nextSrc = null;
-      v.src = spec.nextSrc;
+      v.src = next;
       const pn = v.play();
       if (pn && pn.catch) pn.catch(finish); // 滅亡映像が無ければそこでカードを出す
       return;
