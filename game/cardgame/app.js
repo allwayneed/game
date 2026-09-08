@@ -294,6 +294,7 @@ const SOVIET_STAR = { stalin: true, lenin: true, trotsky: true };
 const CHINA_STAR = { mao: true, xijinping: true };
 const GERMANY_STAR = { hitler: true, himmler: true };
 const NK_STAR = { kimilsung: true, kimjongil: true, kimjongun: true }; // 北朝鮮3代: コンギョ＋ミサイル映像（後日素材追加）
+const NK_MISS = { hwang: true }; // 黄長燁（N）: キム一族じゃないのにミサイルだけで期待させるハズレ枠
 const STALIN_HERO = { stalin: true };
 const CONFIRM_SCALE = 1.9;
 let bgVideoEl = null;
@@ -331,6 +332,8 @@ function confirmSpecFor(card) {
   if (SOVIET_STAR[card.id]) return { src: "assets/confirm.mp4", bg: false, soviet: true };
   // 北朝鮮3代（大当たり）: 発射（全面15秒）→滅亡開始でカード＋閉じるボタン登場、滅亡映像は背景で流す。曲は閉じるまでループ
   if (NK_STAR[card.id]) return { src: "assets/kp_confirm.mp4", nextSrc: "assets/kp_doom.mp4", bg: false, kp: true, audio: { id: "kongyo-jingle", start: 0 } };
+  // 黄長燁（ハズレ）: ミサイル発射映像だけ。SSRジングルも鳴らして極限まで期待させる
+  if (NK_MISS[card.id]) return { src: "assets/kp_confirm.mp4", bg: false, soviet: false };
   // SSR（キム一族以外はハズレ）: ミサイル発射映像だけで期待させてカード登場
   if (card.r === "SSR") return { src: "assets/kp_confirm.mp4", bg: false, soviet: false };
   return null;
@@ -532,7 +535,7 @@ function flip(el) {
   const card = CARD_BY_ID[el.dataset.id];
   el.classList.add("flipped");
   sFlip();
-  const isConfirmChar = SOVIET_STAR[card.id] || CHINA_STAR[card.id] || GERMANY_STAR[card.id] || card.r === "SSR";
+  const isConfirmChar = SOVIET_STAR[card.id] || CHINA_STAR[card.id] || GERMANY_STAR[card.id] || NK_MISS[card.id] || card.r === "SSR";
   if (isConfirmChar && !state.seen[card.id]) {
     // 確定演出は各キャラ初回のみ。見たらstate.seenに記録し、次回から自動スキップ
     el.classList.add("ssr-burst");
