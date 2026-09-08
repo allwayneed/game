@@ -298,6 +298,7 @@ const NK_MISS = { hwang: true }; // 黄長燁（N）: キム一族じゃない�
 const STALIN_HERO = { stalin: true };
 const CONFIRM_SCALE = 1.9;
 let bgVideoEl = null;
+let jingleTimer = null; // エーリカ等の開始を遅らせるタイマー（カード登場と同時に鳴らす用）
 let bgShowTimer = null;
 
 function playSovietJingle() {
@@ -324,8 +325,8 @@ function playCardJingle(audioSpec) {
 function confirmSpecFor(card) {
   if (STALIN_HERO[card.id]) return { src: "assets/stalin.mp4", bg: true, revealAt: 15000, soviet: true };
   // ヒトラー：33秒映像を背景に流し、終了5秒前(28秒)にカードを出し、最終フレームで静止（スターリンと同じ型）
-  // 映像は消音し、代わりにエーリカ（assets/erika.mp3）を曲の1:10から鳴らし始める
-  if (card.id === "hitler") return { src: "assets/hitler.mp4", bg: true, revealAt: 28000, soviet: false, audio: { id: "erika-jingle", start: 70 } };
+  // 映像は消音。エーリカ（assets/erika.mp3）は曲の1:10から、カード登場（28秒地点）と同じタイミングで鳴らし始める
+  if (card.id === "hitler") return { src: "assets/hitler.mp4", bg: true, revealAt: 28000, soviet: false, audio: { id: "erika-jingle", start: 70, delay: 28000 } };
   // ヒムラー：21秒映像（末尾フェードアウト）を全面再生→終わったらカード表面をフェードイン
   if (card.id === "himmler") return { src: "assets/himmler.mp4", bg: false, soviet: false };
   if (CHINA_STAR[card.id]) return { src: "assets/confirm.mp4", bg: false, china: true };
@@ -398,7 +399,11 @@ function tryPlayConfirmVideo(heroEl, spec) {
       try { bgVideoEl.pause(); } catch (e) {} // 最終フレームでそのまま停止
     };
     bgVideoEl.addEventListener("ended", finishBg);
-    if (spec.audio) { bgVideoEl.muted = true; playCardJingle(spec.audio); } // エーリカ等を映像の代わりに鳴らす
+    if (spec.audio) {
+      bgVideoEl.muted = true;
+      if (spec.audio.delay) jingleTimer = setTimeout(() => playCardJingle(spec.audio), spec.audio.delay); // カード登場と同じタイミングで鳴らし始める
+      else playCardJingle(spec.audio);
+    } // エーリカ等を映像の代わりに鳴らす
     const p2 = bgVideoEl.play();
     if (p2 && p2.catch) p2.catch(() => {
       bgVideoEl.removeEventListener("ended", finishBg);
@@ -487,6 +492,7 @@ function endConfirmReveal() {
   const first = hero ? hero.getBoundingClientRect() : null;
   const wasHidden = !!hero && hero.style.opacity === "0";
   if (bgShowTimer) { clearTimeout(bgShowTimer); bgShowTimer = null; }
+  if (jingleTimer) { clearTimeout(jingleTimer); jingleTimer = null; }
   if (bgVideoEl) {
     try { bgVideoEl.pause(); } catch (e) {}
     bgVideoEl.remove();
