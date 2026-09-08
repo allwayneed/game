@@ -236,3 +236,5 @@ const COUNTRY_NAME = {
 
 // 裏面パターンのグループ（ここにない国は汎用デザイン）
 const BACK_STYLE = { jp:"jp", de:"de", ru:"ru", cn:"cn", us:"us", uk:"uk", fr:"fr", it:"it", kp:"kp" };
+// 完全シークレット国：未所持のカードは図鑑にすら載らない（引くまで存在が不明）
+const SECRET_COUNTRY = { kp: true };
