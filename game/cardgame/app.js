@@ -331,7 +331,8 @@ function confirmSpecFor(card) {
   if (SOVIET_STAR[card.id]) return { src: "assets/confirm.mp4", bg: false, soviet: true };
   // 北朝鮮3代: ミサイル発射→地球爆破の映像（消音）＋コンギョ（assets/kongyo.mp3）を閉じるまでループ
   if (NK_STAR[card.id]) return { src: "assets/kp_confirm.mp4", bg: false, kp: true, audio: { id: "kongyo-jingle", start: 0 } };
-  if (card.r === "SSR") return { src: SSR_VIDEO_SRC, bg: false, soviet: false };
+  // SSR全員: カードは即登場し、映像は背景として閉じるまで流れ続ける
+  if (card.r === "SSR") return { src: SSR_VIDEO_SRC, bg: false, soviet: false, ssrBg: true };
   return null;
 }
 
@@ -372,6 +373,22 @@ function tryPlayConfirmVideo(heroEl, spec) {
   if (!spec || !spec.src || !v) {
     heroEl.style.opacity = "1";
     if (spec && spec.soviet) fallbackReveal(heroEl); // ソ連3人は赤背景＋ジングルにフォールバック
+    return;
+  }
+
+  if (spec.ssrBg) {
+    // SSR: カードは即登場。映像は背景としてループ再生し「閉じる」まで流れ続ける
+    heroEl.style.opacity = "1";
+    bgVideoEl = v.cloneNode();
+    bgVideoEl.removeAttribute("id");
+    bgVideoEl.classList.remove("hidden");
+    bgVideoEl.classList.add("confirm-video-bg");
+    bgVideoEl.muted = true;
+    bgVideoEl.loop = true;
+    bgVideoEl.src = spec.src;
+    $("overlay").appendChild(bgVideoEl);
+    const pSSR = bgVideoEl.play();
+    if (pSSR && pSSR.catch) pSSR.catch(() => { bgVideoEl.remove(); bgVideoEl = null; }); // 再生不可なら背景なしでそのまま
     return;
   }
 
