@@ -292,6 +292,7 @@ function bindCards() {
 const SOVIET_STAR = { stalin: true, lenin: true, trotsky: true };
 const CHINA_STAR = { mao: true, xijinping: true };
 const GERMANY_STAR = { hitler: true, himmler: true };
+const NK_STAR = { kimilsung: true, kimjongil: true, kimjongun: true }; // 北朝鮮3代: コンギョ＋ミサイル映像（後日素材追加）
 const STALIN_HERO = { stalin: true };
 const CONFIRM_SCALE = 1.9;
 const SSR_VIDEO_SRC = "assets/ssr.mp4"; // SSR全員用の映像（後日用意）
@@ -328,6 +329,8 @@ function confirmSpecFor(card) {
   if (card.id === "himmler") return { src: "assets/himmler.mp4", bg: false, soviet: false };
   if (CHINA_STAR[card.id]) return { src: "assets/confirm.mp4", bg: false, china: true };
   if (SOVIET_STAR[card.id]) return { src: "assets/confirm.mp4", bg: false, soviet: true };
+  // 北朝鮮3代: ミサイル発射→地球爆破の映像（消音）＋コンギョ（assets/kongyo.mp3）を閉じるまでループ
+  if (NK_STAR[card.id]) return { src: "assets/kp_confirm.mp4", bg: false, kp: true, audio: { id: "kongyo-jingle", start: 0 } };
   if (card.r === "SSR") return { src: SSR_VIDEO_SRC, bg: false, soviet: false };
   return null;
 }
@@ -408,7 +411,7 @@ function tryPlayConfirmVideo(heroEl, spec) {
   // 全面再生モード（レーニン等 / SSR / 中国の2人）
   heroEl.style.opacity = "0"; // 映像が終わるまでカードは隠す
   v.src = spec.src;
-  v.muted = !!spec.china; // 中国の2人は動画の音を消してassets/china.mp3を鳴らす
+  v.muted = !!(spec.china || spec.kp); // 中国・北朝鮮は動画の音を消して専用mp3を鳴らす
   v.classList.add("hidden"); // 実際に再生が始まるまで全面には出さない（404などで一瞬黒くならないように）
   v.currentTime = 0;
 
@@ -424,6 +427,7 @@ function tryPlayConfirmVideo(heroEl, spec) {
   v.addEventListener("ended", finish);
 
   if (spec.china) playChinaJingle(); // 映像と一緒に中国のmp3を鳴らす（映像終了後も「閉じる」まで流れ続ける）
+  if (spec.kp) playCardJingle(spec.audio); // コンギョを鳴らす（loop属性で「閉じる」まで流れ続ける）
 
   const p = v.play();
   if (p && p.catch) {
@@ -434,6 +438,7 @@ function tryPlayConfirmVideo(heroEl, spec) {
       heroEl.style.opacity = "1";
       if (spec.soviet) fallbackReveal(heroEl);
       else if (spec.china) fallbackReveal(heroEl, true); // 赤背景＋mp3はそのまま
+      else if (spec.kp) fallbackReveal(heroEl, false, spec.audio); // 赤背景＋コンギョ
     });
   }
 }
@@ -462,6 +467,7 @@ function endConfirmReveal() {
   try { $("soviet-jingle").pause(); } catch (e) {}
   try { $("china-jingle").pause(); } catch (e) {}
   try { $("erika-jingle").pause(); } catch (e) {}
+  try { $("kongyo-jingle").pause(); } catch (e) {}
   $("cards-area").classList.remove("confirm-active");
   $("overlay").classList.remove("soviet");
   if (!hero) return;
@@ -502,13 +508,13 @@ function flip(el) {
   if (isConfirmChar && !state.seen[card.id]) {
     // 確定演出は各キャラ初回のみ。見たらstate.seenに記録し、次回から自動スキップ
     el.classList.add("ssr-burst");
-    if (!SOVIET_STAR[card.id] && !CHINA_STAR[card.id] && !GERMANY_STAR[card.id]) setTimeout(sSSR, 150);
+    if (!SOVIET_STAR[card.id] && !CHINA_STAR[card.id] && !GERMANY_STAR[card.id] && !NK_STAR[card.id]) setTimeout(sSSR, 150);
     state.seen[card.id] = 1; save();
     if (!document.querySelector(".confirm-hero")) triggerConfirmReveal(el);
   } else if (isConfirmChar) {
     // 一度見たキャラ: 演出スキップ、バースト＋音のみ
     el.classList.add("ssr-burst");
-    if (!SOVIET_STAR[card.id] && !CHINA_STAR[card.id] && !GERMANY_STAR[card.id]) setTimeout(sSSR, 150);
+    if (!SOVIET_STAR[card.id] && !CHINA_STAR[card.id] && !GERMANY_STAR[card.id] && !NK_STAR[card.id]) setTimeout(sSSR, 150);
   } else if (card.r === "SR") {
     setTimeout(sNew, 100);
   }
