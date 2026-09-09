@@ -436,24 +436,43 @@ function tryPlayConfirmVideo(heroEl, spec) {
     if (spec.nextSrc) {
       const next = spec.nextSrc;
       spec.nextSrc = null;
-      // 地球滅亡が始まったら全面映像をしまい、カードと閉じるボタンを出したまま
-      // 滅亡映像は背景モード（カードの裏）で流し、最終フレームで静止（スターリン型）
+
       v.removeEventListener("playing", onPlaying);
       v.removeEventListener("ended", onEnded);
       v.classList.add("hidden");
+
+      // カードを表示
       heroEl.style.transition = "opacity .6s ease";
       heroEl.style.opacity = "1";
+
+      // 地球滅亡動画を背景として開始
       bgVideoEl = v.cloneNode();
       bgVideoEl.removeAttribute("id");
       bgVideoEl.classList.remove("hidden");
       bgVideoEl.classList.add("confirm-video-bg");
       bgVideoEl.muted = true;
       bgVideoEl.src = next;
-      $("overlay").appendChild(bgVideoEl);
-      const freezeDoom = () => { try { bgVideoEl.pause(); } catch (e) {} };
+
+      const freezeDoom = () => {
+        try { bgVideoEl.pause(); } catch (e) {}
+      };
+
       bgVideoEl.addEventListener("ended", freezeDoom);
+
+      // ★ kp_doom.mp4 の再生開始と同時に音源を開始
+      if (spec.audio) {
+        playCardJingle(spec.audio);
+      }
+
       const pd = bgVideoEl.play();
-      if (pd && pd.catch) pd.catch(() => { try { bgVideoEl.remove(); } catch (e) {} bgVideoEl = null; }); // 再生不可なら背景なし
+  
+      if (pd && pd.catch) {
+        pd.catch(() => {
+          try { bgVideoEl.remove(); } catch (e) {}
+          bgVideoEl = null;
+        });
+      }
+  
       return;
     }
     finish();
@@ -462,7 +481,6 @@ function tryPlayConfirmVideo(heroEl, spec) {
   v.addEventListener("ended", onEnded);
 
   if (spec.china) playChinaJingle(); // 映像と一緒に中国のmp3を鳴らす（映像終了後も「閉じる」まで流れ続ける）
-  if (spec.kp) playCardJingle(spec.audio); // 滅亡の曲を演出開始から「閉じる」まで流し続ける（loop属性）
 
   const p = v.play();
   if (p && p.catch) {
