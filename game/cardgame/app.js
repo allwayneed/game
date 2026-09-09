@@ -205,19 +205,27 @@ function rollRarity(forceSSR) {
   if (x < RATE.SSR + RATE.SR + RATE.R) return "R";
   return "N";
 }
-function drawOne() {
-  let r = rollRarity(state.pity + 1 >= PITY_LIMIT);
+function drawOne(forceSSR) {
+  let r = rollRarity(forceSSR);
   // USSR（スターリン）はSSRと同じ排出枠から出る
   const pool = r === "SSR" ? BY_RARITY.SSR.concat(BY_RARITY.USSR || []) : BY_RARITY[r];
   return pool[Math.floor(Math.random() * pool.length)];
 }
 function drawPack(n) {
+  // 天井は1枚ごとに判定: パック内でSSR/USSRが出たらリセット、
+  // 49連目を超えた1枚だけが強制SSRになる（10連で全部SSRになるバグ修正）
   const cards = [];
-  for (let i = 0; i < n; i++) cards.push(drawOne());
+  let pity = state.pity;
+  for (let i = 0; i < n; i++) {
+    const c = drawOne(pity + 1 >= PITY_LIMIT);
+    pity = (c.r === "SSR" || c.r === "USSR") ? 0 : pity + 1;
+    cards.push(c);
+  }
   if (n >= 10 && !cards.some(c => c.r === "SSR" || c.r === "USSR" || c.r === "SR")) {
     const pool = BY_RARITY.SR;
     cards[n - 1] = pool[Math.floor(Math.random() * pool.length)];
   }
+  state.pity = pity;
   return cards;
 }
 function acquire(card) {
@@ -260,9 +268,7 @@ async function openPack(n) {
 
   const cards = drawPack(n);
   const results = cards.map(c => ({ card: c, isNew: acquire(c) }));
-  const gotSSR = cards.some(c => c.r === "SSR" || c.r === "USSR");
-  state.pity = gotSSR ? 0 : state.pity + n;
-  save();
+  save(); // state.pity は drawPack 内で1枚ごとに更新済み
   currentDraw = results;
   renderTickets(); renderStats();
 
