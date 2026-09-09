@@ -400,10 +400,10 @@ function tryPlayConfirmVideo(heroEl, spec) {
     };
     bgVideoEl.addEventListener("ended", finishBg);
     if (spec.audio) {
-      bgVideoEl.muted = true;
+      // 映像の元音声（演説等）は消さない。エーリカはカード登場のタイミングで重ねて鳴らす
       if (spec.audio.delay) jingleTimer = setTimeout(() => playCardJingle(spec.audio), spec.audio.delay); // カード登場と同じタイミングで鳴らし始める
       else playCardJingle(spec.audio);
-    } // エーリカ等を映像の代わりに鳴らす
+    }
     const p2 = bgVideoEl.play();
     if (p2 && p2.catch) p2.catch(() => {
       bgVideoEl.removeEventListener("ended", finishBg);
