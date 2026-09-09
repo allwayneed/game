@@ -135,7 +135,7 @@ function resolveTitle(title, q) {
 async function fetchWiki(cardIds) {
   const need = cardIds.filter(id => {
     const c = wikiCache[id];
-    return !c || !c.ts || (Date.now() - c.ts > WIKI_TTL && !c.tried);
+    return !c || !c.ts || (Date.now() - c.ts > WIKI_TTL && !(c.th || c.ex || c.t));
   });
   if (!need.length) return;
   const chunks = [];
@@ -155,11 +155,13 @@ async function fetchWiki(cardIds) {
         const card = CARD_BY_ID[id];
         const t = resolveTitle(card.w, q);
         const p = pages[t];
-        const entry = { ts: Date.now(), tried: true };
+        const entry = { ts: Date.now() };
         if (p) {
           entry.t = p.title;
           if (p.thumbnail) entry.th = p.thumbnail.source;
           if (p.extract) entry.ex = p.extract.trim();
+        } else {
+          entry.tried = true; // ページが見つからなかった: 再試行しない
         }
         wikiCache[id] = entry;
       });
@@ -255,7 +257,6 @@ function cardHTML(card, isNew) {
     "</div></div></div>";
 }
 
-let currentDraw = [];
 async function openPack(n) {
   const cost = n >= 10 ? 2 : 1;
   if (state.tickets < cost) return;
@@ -269,21 +270,25 @@ async function openPack(n) {
   const cards = drawPack(n);
   const results = cards.map(c => ({ card: c, isNew: acquire(c) }));
   save(); // state.pity は drawPack 内で1枚ごとに更新済み
-  currentDraw = results;
   renderTickets(); renderStats();
 
   // 先にWikipediaから肖像を取得
   $("overlay-title").textContent = n >= 10 ? "10連 結果" : "開封結果";
   const area = $("cards-area");
   area.innerHTML = results.map(r => cardHTML(r.card, r.isNew)).join("");
+  bindCards(); // Wikipedia応答を待たずにめくれるように
   $("overlay").classList.remove("hidden");
   await fetchWiki(cards.map(c => c.id));
-  // 取得後に描画し直し（めくってないものだけ）
-  area.querySelectorAll(".card:not(.flipped)").forEach(el => {
-    const r = results.find(x => x.card.id === el.dataset.id);
-    if (r) el.outerHTML = cardHTML(r.card, r.isNew);
+  // 取得後: 肖像が無いカードの .portrait だけ差し替え。
+  // 要素を作り直さないので「すべてめくる」のタイマー・NEWバッジ・flip状態は維持され、
+  // 同パック内の重複カードが誤ったisNewで再描画される問題も起きない
+  area.querySelectorAll(".card").forEach(el => {
+    const wc = wikiCache[el.dataset.id] || {};
+    const p = el.querySelector(".face.front .portrait");
+    if (p && wc.th && !p.querySelector("img")) {
+      p.innerHTML = '<img loading="lazy" alt="" src="' + esc(wc.th) + '"><div class="holo"></div>';
+    }
   });
-  bindCards();
 }
 
 function bindCards() {
@@ -578,7 +583,7 @@ function flip(el) {
   } else if (card.r === "SR") {
     setTimeout(sNew, 100);
   }
-  if (el.classList.contains("new-badge") && !SOVIET_STAR[card.id]) setTimeout(sNew, 80);
+  if (el.classList.contains("new-badge") && card.r !== "SR" && !SOVIET_STAR[card.id]) setTimeout(sNew, 80);
 }
 
 // ----- 図鑑 -----
@@ -597,7 +602,8 @@ function renderDex() {
   $("progress-bar").style.width = pct + "%";
   $("progress-text").textContent = ownedCount + " / " + CARDS.length + "（" + pct + "%）";
   $("dex-pct").textContent = pct + "%";
-  const list = CARDS.filter(c => filter === "全て" || c.t === filter);
+  // 完全シークレット国（北朝鮮）は未所持だと図鑑にすら載らない
+  const list = CARDS.filter(c => (filter === "全て" || c.t === filter) && (state.owned[c.id] || !SECRET_COUNTRY[countryOf(c.id)]));
   const grid = $("dex-grid");
   grid.innerHTML = list.map(c => {
     const lv = state.owned[c.id] || 0;
@@ -668,6 +674,7 @@ $("close-overlay").onclick = () => {
   try { $("soviet-jingle").pause(); } catch (e) {}
   try { $("china-jingle").pause(); } catch (e) {}
   try { $("erika-jingle").pause(); } catch (e) {}
+  try { $("kongyo-jingle").pause(); } catch (e) {}
   $("overlay").classList.remove("soviet");
   renderDex();
 };
