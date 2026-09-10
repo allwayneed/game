@@ -10,6 +10,7 @@ const WIKI_TTL = 7 * 24 * 3600 * 1000;
 
 // ----- 状態（localStorage） -----
 const SKEY = "mhc_state_v1";
+let confirmQueue = []; // 同時確定演出の待機列（1枚目の演出後に順次再生）
 let state = { owned: {}, seen: {}, tickets: TICKET_MAX, lastTs: Date.now(), packs: 0, muted: false, vip: false };
 try {
   const s = JSON.parse(localStorage.getItem(SKEY));
@@ -290,6 +291,7 @@ async function openPack(n, vip) {
   const pack = document.querySelector(".pack-body");
   pack.classList.remove("shake"); void pack.offsetWidth; pack.classList.add("shake");
 
+  confirmQueue = []; // 新しいパックでは前の待機演出を破棄
   const cards = drawPack(n, vip);
   const results = cards.map(c => ({ card: c, isNew: acquire(c) }));
   save();
@@ -492,6 +494,7 @@ function tryPlayConfirmVideo(heroEl, spec) {
       bgVideoEl.classList.add("confirm-video-bg");
       bgVideoEl.muted = true;
       bgVideoEl.src = next;
+      $("overlay").appendChild(bgVideoEl); // DOMに繋がないと再生されても見えない
 
       const freezeDoom = () => {
         try { bgVideoEl.pause(); } catch (e) {}
@@ -591,6 +594,12 @@ function endConfirmReveal() {
     hero.addEventListener("transitionend", done, { once: true });
     setTimeout(done, 700);
   }
+
+  // 待機中の確定演出があれば、カードがグリッドに戻ったタイミングで続けて再生
+  setTimeout(() => {
+    const next = confirmQueue.shift();
+    if (next && next.isConnected && !$("overlay").classList.contains("hidden")) triggerConfirmReveal(next);
+  }, 620);
 }
 
 function flip(el) {
@@ -605,6 +614,7 @@ function flip(el) {
     if (!SOVIET_STAR[card.id] && !CHINA_STAR[card.id] && !GERMANY_STAR[card.id] && !NK_STAR[card.id] && !JAPAN_STAR[card.id]) setTimeout(sSSR, 150);
     state.seen[card.id] = 1; save();
     if (!document.querySelector(".confirm-hero")) triggerConfirmReveal(el);
+    else confirmQueue.push(el); // 演出中: 1枚目が閉じた後に続けて再生する
   } else if (isConfirmChar) {
     // 一度見たキャラ: 演出スキップ、バースト＋音のみ
     el.classList.add("ssr-burst");
