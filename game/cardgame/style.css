@@ -17,6 +17,8 @@ body {
   font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
   min-height: 100vh;
   padding-bottom: 60px;
+  touch-action: manipulation;            /* ダブルタップズーム・長押しメニュー抑制 */
+  -webkit-tap-highlight-color: transparent;
 }
 header {
   display: flex; align-items: center; justify-content: space-between;
@@ -104,7 +106,9 @@ main { padding: 10px 16px; }
 @keyframes fadein { from { opacity: 0; } }
 .overlay-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .overlay-head span { font-size: 17px; font-weight: bold; }
-.overlay-actions { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 60; }
+.overlay-actions { position: fixed; bottom: calc(18px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 60; }
+/* 連打時のテキスト選択・iOS拡大抑制 */
+.card, .dex-card, .btn, .tab, .filter-btn, .pack-body { -webkit-user-select: none; user-select: none; }
 .overlay.soviet::before {
   content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
   background: radial-gradient(circle at 50% 32%, rgba(200,32,44,.45) 0%, rgba(140,16,28,.2) 45%, transparent 72%);
@@ -212,11 +216,11 @@ footer a { color: #565d75; }
   animation: confirmShock .65s ease-out forwards;
 }
 @keyframes confirmShock { 0% { transform: scale(.75); opacity: 1; } 100% { transform: scale(1.9); opacity: 0; } }
-.confirm-video { position: fixed; inset: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 120; background: #05070f; pointer-events: none; }
+.confirm-video { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; object-fit: cover; z-index: 120; background: #05070f; pointer-events: none; }
 .confirm-video.hidden { display: none; }
 
 /* スターリン用：overlay内の背景映像（カード z90 より下、ボタン z60 より…いや上に置いて下から透ける形） */
-.confirm-video-bg { position: fixed; inset: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 40; background: #000; pointer-events: none; }
+.confirm-video-bg { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; object-fit: cover; z-index: 40; background: #000; pointer-events: none; }
 
 /* USSR（スターリン専用枠）：赤金の特別感 */
 .card.r-USSR .face.front {
@@ -230,3 +234,48 @@ footer a { color: #565d75; }
   animation: holo 2.2s linear infinite;
 }
 @keyframes ussrPulse { from { box-shadow: 0 0 14px rgba(255,75,75,.45); } to { box-shadow: 0 0 28px rgba(255,75,75,.75); } }
+
+
+/* ---- スマホ対応（600px以下） ---- */
+@media (max-width: 600px) {
+  header { flex-wrap: wrap; gap: 4px 10px; padding: 12px 12px 4px; }
+  header h1 { font-size: 17px; }
+  .ticket-pill { font-size: 13px; }
+  .ticket-timer { min-width: 56px; font-size: 11px; }
+  main { padding: 8px 12px; }
+  .tabs { padding: 8px 12px; }
+  .tab { font-size: 14px; padding: 9px; }
+
+  /* 開封パネル */
+  .pack-visual { padding: 10px 0 18px; }
+  .pack-body { width: 118px; height: 158px; }
+  .pack-star { font-size: 30px; }
+  .pack-label { margin-top: 6px; font-size: 11px; }
+  .gacha-buttons { gap: 8px; }
+  .btn { padding: 10px 8px; font-size: 14px; flex: 1; max-width: 190px; }
+  .note { font-size: 11px; margin-top: 12px; }
+  .stats { font-size: 12px; gap: 12px; flex-wrap: wrap; }
+
+  /* 開封結果: 3列グリッドで10連も縦に伸びすぎないように */
+  .cards-area { grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: none; padding-bottom: 90px; }
+  .card-name { font-size: 10px; min-height: 34px; padding: 4px 3px; }
+  .card-tag { font-size: 8px; padding-bottom: 4px; }
+  .rarity-badge { font-size: 9px; top: 4px; right: 4px; padding: 1px 5px; }
+  .card.new-badge::after { font-size: 8px; top: 4px; left: 4px; }
+  .portrait .noimg { font-size: 30px; }
+  .face.back .q { font-size: 26px; }
+  .overlay { padding: 12px; }
+  .overlay-head { margin-bottom: 10px; }
+  .overlay-head span { font-size: 15px; }
+  .btn-small { padding: 8px 14px; font-size: 13px; }
+
+  /* 図鑑 */
+  .dex-grid { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 8px; }
+  .dex-card .cname { font-size: 9px; }
+  .dex-head { gap: 8px; }
+  #progress-text { font-size: 11px; }
+
+  /* 詳細ポップアップ */
+  .detail-box { margin: 20px auto; }
+  .detail-box h2 { font-size: 16px; }
+}

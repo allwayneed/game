@@ -309,6 +309,8 @@ const NK_STAR = { kimilsung: true, kimjongil: true, kimjongun: true }; // 北朝
 const NK_MISS = { hwang: true }; // 黄長燁（N）: キム一族じゃないのにミサイルだけで期待させるハズレ枠
 const STALIN_HERO = { stalin: true };
 const CONFIRM_SCALE = 1.9;
+// スマホはカード自体が小さい分、中央登場時は大きく拡大する
+const confirmScale = () => window.innerWidth <= 600 ? 2.4 : CONFIRM_SCALE;
 let bgVideoEl = null;
 let jingleTimer = null; // エーリカ等の開始を遅らせるタイマー（カード登場と同時に鳴らす用）
 let bgShowTimer = null;
@@ -369,8 +371,9 @@ function triggerConfirmReveal(el) {
   el.getBoundingClientRect(); // 強制リフロー
 
   requestAnimationFrame(() => {
-    const newW = rect.width * CONFIRM_SCALE;
-    const newH = rect.height * CONFIRM_SCALE;
+    const s = confirmScale();
+    const newW = rect.width * s;
+    const newH = rect.height * s;
     el.style.transition = "left .55s cubic-bezier(.2,.8,.2,1), top .55s cubic-bezier(.2,.8,.2,1), width .55s cubic-bezier(.2,.8,.2,1), height .55s cubic-bezier(.2,.8,.2,1)";
     el.style.left = ((window.innerWidth - newW) / 2) + "px";
     el.style.top = ((window.innerHeight - newH) / 2) + "px";
