@@ -2,8 +2,8 @@
 /* ===== 近代史カードパック — 本体 ===== */
 
 // ----- 設定 -----
-// SSSSRはSSRの上に追加される0.5%の超伝説枠（N枠が肩代わり、SSR帯は3%を維持）
-const RATE = { SSSSR: 0.005, SSR: 0.03, SR: 0.14, R: 0.33, N: 0.495 };
+// SSSSRはSSRの上に追加される0.1%の超伝説枠（N枠が肩代わり、SSR帯は3%を維持）
+const RATE = { SSSSR: 0.001, SSR: 0.03, SR: 0.14, R: 0.33, N: 0.499 };
 const TICKET_MAX = 50;
 const TICKET_MS = 10 * 1000;     // 10秒で1枚
 const MAX_LV = 5;
