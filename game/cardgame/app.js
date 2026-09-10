@@ -304,6 +304,7 @@ function bindCards() {
 const SOVIET_STAR = { stalin: true, lenin: true, trotsky: true };
 const CHINA_STAR = { mao: true, xijinping: true };
 const GERMANY_STAR = { hitler: true, himmler: true };
+const JAPAN_STAR = { showa: true }; // 昭和天皇: 観閲式映像を25秒地点までフルで流し、その時点でカードを出す
 const NK_STAR = { kimilsung: true, kimjongil: true, kimjongun: true }; // 北朝鮮3代: コンギョ＋ミサイル映像（後日素材追加）
 const NK_MISS = { hwang: true }; // 黄長燁（N）: キム一族じゃないのにミサイルだけで期待させるハズレ枠
 const STALIN_HERO = { stalin: true };
@@ -340,6 +341,8 @@ function confirmSpecFor(card) {
   if (card.id === "hitler") return { src: "assets/hitler.mp4", bg: true, revealAt: 28000, soviet: false, audio: { id: "erika-jingle", start: 70, delay: 28000 } };
   // ヒムラー：21秒映像（末尾フェードアウト）を全面再生→終わったらカード表面をフェードイン
   if (card.id === "himmler") return { src: "assets/himmler.mp4", bg: false, soviet: false };
+  // 昭和天皇：37.6秒の観閲式映像を背景に全部流し、25秒地点でカードを出す（元の音声はそのまま残す）
+  if (JAPAN_STAR[card.id]) return { src: "assets/showa.mp4", bg: true, revealAt: 25000, soviet: false };
   if (CHINA_STAR[card.id]) return { src: "assets/confirm.mp4", bg: false, china: true };
   if (SOVIET_STAR[card.id]) return { src: "assets/confirm.mp4", bg: false, soviet: true };
   // 北朝鮮3代（大当たり）: 発射（全面15秒）→滅亡開始でカード＋閉じるボタン登場、滅亡映像は背景で流す。曲は閉じるまでループ
@@ -573,13 +576,13 @@ function flip(el) {
   if (isConfirmChar && !state.seen[card.id]) {
     // 確定演出は各キャラ初回のみ。見たらstate.seenに記録し、次回から自動スキップ
     el.classList.add("ssr-burst");
-    if (!SOVIET_STAR[card.id] && !CHINA_STAR[card.id] && !GERMANY_STAR[card.id] && !NK_STAR[card.id]) setTimeout(sSSR, 150);
+    if (!SOVIET_STAR[card.id] && !CHINA_STAR[card.id] && !GERMANY_STAR[card.id] && !NK_STAR[card.id] && !JAPAN_STAR[card.id]) setTimeout(sSSR, 150);
     state.seen[card.id] = 1; save();
     if (!document.querySelector(".confirm-hero")) triggerConfirmReveal(el);
   } else if (isConfirmChar) {
     // 一度見たキャラ: 演出スキップ、バースト＋音のみ
     el.classList.add("ssr-burst");
-    if (!SOVIET_STAR[card.id] && !CHINA_STAR[card.id] && !GERMANY_STAR[card.id] && !NK_STAR[card.id]) setTimeout(sSSR, 150);
+    if (!SOVIET_STAR[card.id] && !CHINA_STAR[card.id] && !GERMANY_STAR[card.id] && !NK_STAR[card.id] && !JAPAN_STAR[card.id]) setTimeout(sSSR, 150);
   } else if (card.r === "SR") {
     setTimeout(sNew, 100);
   }
