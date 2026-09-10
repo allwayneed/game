@@ -329,7 +329,7 @@ function bindCards() {
 const SOVIET_STAR = { stalin: true, lenin: true, trotsky: true };
 const CHINA_STAR = { mao: true, xijinping: true, zhouenlai: true }; // 中国組: 映像＋中国のmp3演出
 const GERMANY_STAR = { hitler: true, himmler: true };
-const JAPAN_STAR = { showa: true }; // 昭和天皇: 観閲式映像を25秒地点までフルで流し、その時点でカードを出す
+const JAPAN_STAR = { showa: true, tojo: true }; // 昭和天皇・東條英機: 観閲式映像を25秒地点までフルで流し、その時点でカードを出す
 const NK_STAR = { kimilsung: true, kimjongil: true, kimjongun: true }; // 北朝鮮3代: コンギョ＋ミサイル映像（後日素材追加）
 const NK_MISS = { hwang: true }; // 黄長燁（N）: キム一族じゃないのにミサイルだけで期待させるハズレ枠
 const STALIN_HERO = { stalin: true };
@@ -607,7 +607,7 @@ function flip(el) {
   const card = CARD_BY_ID[el.dataset.id];
   el.classList.add("flipped");
   sFlip();
-  const isConfirmChar = SOVIET_STAR[card.id] || CHINA_STAR[card.id] || GERMANY_STAR[card.id] || NK_MISS[card.id] || card.r === "SSR";
+  const isConfirmChar = SOVIET_STAR[card.id] || CHINA_STAR[card.id] || GERMANY_STAR[card.id] || NK_MISS[card.id] || JAPAN_STAR[card.id] || card.r === "SSR";
   if (isConfirmChar && !state.seen[card.id]) {
     // 確定演出は各キャラ初回のみ。見たらstate.seenに記録し、次回から自動スキップ
     el.classList.add("ssr-burst");
