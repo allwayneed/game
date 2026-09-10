@@ -3,7 +3,7 @@
 
 // ----- 設定 -----
 const RATE = { SSR: 0.03, SR: 0.14, R: 0.33, N: 0.50 };
-const TICKET_MAX = 5;
+const TICKET_MAX = 50;
 const TICKET_MS = 10 * 1000;     // 10秒で1枚
 const PITY_LIMIT = 50;           // 50連天井：SSRが出るまでのカウント
 const MAX_LV = 5;
@@ -11,7 +11,7 @@ const WIKI_TTL = 7 * 24 * 3600 * 1000;
 
 // ----- 状態（localStorage） -----
 const SKEY = "mhc_state_v1";
-let state = { owned: {}, seen: {}, tickets: TICKET_MAX, lastTs: Date.now(), packs: 0, pity: 0, muted: false };
+let state = { owned: {}, seen: {}, tickets: TICKET_MAX, lastTs: Date.now(), packs: 0, pity: 0, muted: false, vip: false };
 try {
   const s = JSON.parse(localStorage.getItem(SKEY));
   if (s && typeof s === "object") state = Object.assign(state, s);
@@ -196,6 +196,23 @@ function renderTickets() {
   }
   document.getElementById("draw1").disabled = state.tickets < 1;
   document.getElementById("draw10").disabled = state.tickets < 2;
+  renderVIPButtons();
+}
+// 伝説の開封ボタンの表示（ロック中は正体を伏せる）
+let vipShown = null;
+function renderVIPButtons() {
+  const unlocked = vipUnlocked();
+  if (unlocked !== vipShown) {
+    vipShown = unlocked;
+    $("draw-ssr1").innerHTML = unlocked
+      ? "SSR確定 1枚<br><small>チケット25枚／SSR1枚確定</small>"
+      : "🔒 ？？？<br><small>ある人物を引くと解放される</small>";
+    $("draw-ssr10").innerHTML = unlocked
+      ? "SSR確定 10連<br><small>チケット50枚／SSR10枚確定</small>"
+      : "🔒 ？？？<br><small>？？？を引くと解放される</small>";
+  }
+  $("draw-ssr1").disabled = !unlocked || state.tickets < 25;
+  $("draw-ssr10").disabled = !unlocked || state.tickets < 50;
 }
 
 // ----- ガチャ -----
@@ -213,13 +230,14 @@ function drawOne(forceSSR) {
   const pool = r === "SSR" ? BY_RARITY.SSR.concat(BY_RARITY.USSR || []) : BY_RARITY[r];
   return pool[Math.floor(Math.random() * pool.length)];
 }
-function drawPack(n) {
+function drawPack(n, forceAllSSR) {
   // 天井は1枚ごとに判定: パック内でSSR/USSRが出たらリセット、
   // 49連目を超えた1枚だけが強制SSRになる（10連で全部SSRになるバグ修正）
+  // forceAllSSR（伝説の開封）は全カードSSR枠から強制排出
   const cards = [];
   let pity = state.pity;
   for (let i = 0; i < n; i++) {
-    const c = drawOne(pity + 1 >= PITY_LIMIT);
+    const c = drawOne(!!forceAllSSR || pity + 1 >= PITY_LIMIT);
     pity = (c.r === "SSR" || c.r === "USSR") ? 0 : pity + 1;
     cards.push(c);
   }
@@ -230,10 +248,19 @@ function drawPack(n) {
   state.pity = pity;
   return cards;
 }
+// ----- 伝説の開封（エンドコンテンツ） -----
+// 金一族（3代）かスターリンを引くと解放される。図鑑/ボタンでは正体を隠す
+const VIP_IDS = { kimilsung: true, kimjongil: true, kimjongun: true, stalin: true };
+function vipUnlocked() {
+  if (state.vip) return true;
+  for (const id in VIP_IDS) if (state.owned[id]) { state.vip = true; return true; }
+  return false;
+}
 function acquire(card) {
   const cur = state.owned[card.id] || 0;
   const isNew = !cur;
   state.owned[card.id] = Math.min(MAX_LV, cur + 1);
+  if (VIP_IDS[card.id]) state.vip = true; // 伝説の開封 解放
   return isNew;
 }
 
@@ -257,9 +284,10 @@ function cardHTML(card, isNew) {
     "</div></div></div>";
 }
 
-async function openPack(n) {
-  const cost = n >= 10 ? 2 : 1;
+async function openPack(n, vip) {
+  const cost = vip ? (n >= 10 ? 50 : 25) : (n >= 10 ? 2 : 1);
   if (state.tickets < cost) return;
+  if (vip && !vipUnlocked()) return;
   state.tickets -= cost;
   state.packs += 1;
   save();
@@ -267,13 +295,13 @@ async function openPack(n) {
   const pack = document.querySelector(".pack-body");
   pack.classList.remove("shake"); void pack.offsetWidth; pack.classList.add("shake");
 
-  const cards = drawPack(n);
+  const cards = drawPack(n, vip);
   const results = cards.map(c => ({ card: c, isNew: acquire(c) }));
   save(); // state.pity は drawPack 内で1枚ごとに更新済み
   renderTickets(); renderStats();
 
   // 先にWikipediaから肖像を取得
-  $("overlay-title").textContent = n >= 10 ? "10連 結果" : "開封結果";
+  $("overlay-title").textContent = vip ? (n >= 10 ? "SSR10枚確定 結果" : "SSR確定 結果") : (n >= 10 ? "10連 結果" : "開封結果");
   const area = $("cards-area");
   area.innerHTML = results.map(r => cardHTML(r.card, r.isNew)).join("");
   bindCards(); // Wikipedia応答を待たずにめくれるように
@@ -672,6 +700,8 @@ document.querySelectorAll(".tab").forEach(t => {
 // ----- イベント -----
 $("draw1").onclick = () => openPack(1);
 $("draw10").onclick = () => openPack(10);
+$("draw-ssr1").onclick = () => openPack(1, true);
+$("draw-ssr10").onclick = () => openPack(10, true);
 $("open-all").onclick = () => document.querySelectorAll("#cards-area .card:not(.flipped)").forEach((el, i) => setTimeout(() => flip(el), i * 130));
 $("close-overlay").onclick = () => {
   // 確定演出中/終了後は全部閉じず、まずカードを元の位置に戻す（もう一度押すと閉じる）

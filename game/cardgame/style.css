@@ -236,6 +236,10 @@ footer a { color: #565d75; }
 @keyframes ussrPulse { from { box-shadow: 0 0 14px rgba(255,75,75,.45); } to { box-shadow: 0 0 28px rgba(255,75,75,.75); } }
 
 
+/* ---- 伝説の開封 ---- */
+.vip-buttons { margin-top: 10px; }
+.btn-crimson { background: linear-gradient(135deg, #7a1520, #b02030); border-color: #ff4b4b; color: #ffd9d9; }
+
 /* ---- スマホ対応（600px以下） ---- */
 @media (max-width: 600px) {
   header { flex-wrap: wrap; gap: 4px 10px; padding: 12px 12px 4px; }
