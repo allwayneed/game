@@ -330,7 +330,7 @@ function bindCards() {
 //  - 一般SSR: 映像なしで中央へバーンと登場（ミサイル発射映像は北朝鮮カード専用）
 //  - 北朝鮮3代（大当たり）: ミサイル発射→地球滅亡（assets/kp_doom.mp4）の連続シークエンス。滅亡の曲（assets/kongyo.mp3）を閉じるまでループ
 const SOVIET_STAR = { stalin: true, lenin: true, trotsky: true };
-const CHINA_STAR = { mao: true, xijinping: true };
+const CHINA_STAR = { mao: true, xijinping: true, zhouenlai: true }; // 中国組: 映像＋中国のmp3演出
 const GERMANY_STAR = { hitler: true, himmler: true };
 const JAPAN_STAR = { showa: true }; // 昭和天皇: 観閲式映像を25秒地点までフルで流し、その時点でカードを出す
 const NK_STAR = { kimilsung: true, kimjongil: true, kimjongun: true }; // 北朝鮮3代: コンギョ＋ミサイル映像（後日素材追加）
