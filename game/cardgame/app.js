@@ -5,13 +5,12 @@
 const RATE = { SSR: 0.03, SR: 0.14, R: 0.33, N: 0.50 };
 const TICKET_MAX = 50;
 const TICKET_MS = 10 * 1000;     // 10秒で1枚
-const PITY_LIMIT = 50;           // 50連天井：SSRが出るまでのカウント
 const MAX_LV = 5;
 const WIKI_TTL = 7 * 24 * 3600 * 1000;
 
 // ----- 状態（localStorage） -----
 const SKEY = "mhc_state_v1";
-let state = { owned: {}, seen: {}, tickets: TICKET_MAX, lastTs: Date.now(), packs: 0, pity: 0, muted: false, vip: false };
+let state = { owned: {}, seen: {}, tickets: TICKET_MAX, lastTs: Date.now(), packs: 0, muted: false, vip: false };
 try {
   const s = JSON.parse(localStorage.getItem(SKEY));
   if (s && typeof s === "object") state = Object.assign(state, s);
@@ -231,21 +230,17 @@ function drawOne(forceSSR) {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 function drawPack(n, forceAllSSR) {
-  // 天井は1枚ごとに判定: パック内でSSR/USSRが出たらリセット、
-  // 49連目を超えた1枚だけが強制SSRになる（10連で全部SSRになるバグ修正）
+  // 天井（SSR確定）は撤去: SSRは純粋な確率3%のみ。救済なし。
   // forceAllSSR（伝説の開封）は全カードSSR枠から強制排出
   const cards = [];
-  let pity = state.pity;
   for (let i = 0; i < n; i++) {
-    const c = drawOne(!!forceAllSSR || pity + 1 >= PITY_LIMIT);
-    pity = (c.r === "SSR" || c.r === "USSR") ? 0 : pity + 1;
+    const c = drawOne(!!forceAllSSR);
     cards.push(c);
   }
   if (n >= 10 && !cards.some(c => c.r === "SSR" || c.r === "USSR" || c.r === "SR")) {
     const pool = BY_RARITY.SR;
     cards[n - 1] = pool[Math.floor(Math.random() * pool.length)];
   }
-  state.pity = pity;
   return cards;
 }
 // ----- 伝説の開封（エンドコンテンツ） -----
@@ -297,7 +292,7 @@ async function openPack(n, vip) {
 
   const cards = drawPack(n, vip);
   const results = cards.map(c => ({ card: c, isNew: acquire(c) }));
-  save(); // state.pity は drawPack 内で1枚ごとに更新済み
+  save();
   renderTickets(); renderStats();
 
   // 先にWikipediaから肖像を取得
@@ -683,7 +678,6 @@ function showDetail(id) {
 
 function renderStats() {
   $("stat-packs").textContent = state.packs;
-  $("stat-pity").textContent = Math.max(0, PITY_LIMIT - state.pity);
 }
 
 // ----- タブ -----
