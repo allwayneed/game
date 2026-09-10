@@ -2,8 +2,8 @@
 /* ===== 近代史カードパック — 本体 ===== */
 
 // ----- 設定 -----
-// SSSSRはSSRの上に追加される0.1%の超伝説枠（N枠が肩代わり、SSR帯は3%を維持）
-const RATE = { SSSSR: 0.001, SSR: 0.03, SR: 0.14, R: 0.33, N: 0.499 };
+// SSSSR: 0.1%の超伝説枠 / WTF: 0.05%の語る者もいない枠（いずれもNが肩代わり、SSR帯3%は維持）
+const RATE = { WTF: 0.0005, SSSSR: 0.001, SSR: 0.03, SR: 0.14, R: 0.33, N: 0.4985 };
 const TICKET_MAX = 50;
 const TICKET_MS = 10 * 1000;     // 10秒で1枚
 const MAX_LV = 5;
@@ -220,10 +220,11 @@ function renderVIPButtons() {
 function rollRarity(forceSSR) {
   if (forceSSR) return "SSR";
   const x = Math.random();
-  if (x < RATE.SSSSR) return "SSSSR";
-  if (x < RATE.SSSSR + RATE.SSR) return "SSR";
-  if (x < RATE.SSSSR + RATE.SSR + RATE.SR) return "SR";
-  if (x < RATE.SSSSR + RATE.SSR + RATE.SR + RATE.R) return "R";
+  if (x < RATE.WTF) return "WTF";
+  if (x < RATE.WTF + RATE.SSSSR) return "SSSSR";
+  if (x < RATE.WTF + RATE.SSSSR + RATE.SSR) return "SSR";
+  if (x < RATE.WTF + RATE.SSSSR + RATE.SSR + RATE.SR) return "SR";
+  if (x < RATE.WTF + RATE.SSSSR + RATE.SSR + RATE.SR + RATE.R) return "R";
   return "N";
 }
 function drawOne(forceSSR) {
@@ -609,7 +610,7 @@ function flip(el) {
   const card = CARD_BY_ID[el.dataset.id];
   el.classList.add("flipped");
   sFlip();
-  const isConfirmChar = SOVIET_STAR[card.id] || CHINA_STAR[card.id] || GERMANY_STAR[card.id] || NK_MISS[card.id] || JAPAN_STAR[card.id] || card.r === "SSR" || card.r === "SSSSR";
+  const isConfirmChar = SOVIET_STAR[card.id] || CHINA_STAR[card.id] || GERMANY_STAR[card.id] || NK_MISS[card.id] || JAPAN_STAR[card.id] || card.r === "SSR" || card.r === "SSSSR" || card.r === "WTF";
   if (isConfirmChar && !state.seen[card.id]) {
     // 確定演出は各キャラ初回のみ。見たらstate.seenに記録し、次回から自動スキップ
     el.classList.add("ssr-burst");

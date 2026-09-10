@@ -255,6 +255,21 @@ footer a { color: #565d75; }
 .badge-mini.SSSSR { color: #ffe14d; }
 .card.r-SSSSR.confirm-hero { box-shadow: 0 0 70px 16px rgba(255,225,77,.85); }
 
+/* ---- WTF（語る者もいない枠）: 血の脈動 ---- */
+.card.r-WTF .face.front {
+  border-color: #ff2e4d; box-shadow: 0 0 30px rgba(255,46,77,.8);
+  animation: wtfPulse 1.6s ease-in-out infinite alternate;
+}
+.card.r-WTF .rarity-badge { color: #ff2e4d; }
+.card.r-WTF .portrait .holo {
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.25) 45%, transparent 60%),
+              conic-gradient(from 0deg, #ff2e4d66, #7a0d2166 30%, #1a050866 55%, #ff2e4d66 85%);
+  animation: holo 2.2s linear infinite;
+}
+@keyframes wtfPulse { from { box-shadow: 0 0 16px rgba(255,46,77,.55); } to { box-shadow: 0 0 44px rgba(255,46,77,.95); } }
+.badge-mini.WTF { color: #ff2e4d; }
+.card.r-WTF.confirm-hero { box-shadow: 0 0 70px 16px rgba(255,46,77,.9); }
+
 /* ---- スマホ対応（600px以下） ---- */
 @media (max-width: 600px) {
   header { flex-wrap: wrap; gap: 4px 10px; padding: 12px 12px 4px; }

@@ -467,11 +467,14 @@ const RAW_CARDS = [
 
   // ===== SSSSR（超伝説枠） =====
   ["tadokoro","田所浩二","SSSSR","文化","24歳、学生（自称）。真夏の夜の主役。インターネットに深い爪痕を残した先輩。","真夏の夜の淫夢"],
+
+  // ===== WTF（語る者もいない枠） =====
+  ["asahara","麻原彰晃","WTF","宗教","オウム真理教の教祖。日本の近代史に未曾有の衝撃を残した存在。"],
 ];
 
 const CARDS = RAW_CARDS.map(([id, n, r, t, d, w]) => ({ id, n, r, t, d, w: w || n }));
 const CARD_BY_ID = Object.fromEntries(CARDS.map(c => [c.id, c]));
-const BY_RARITY = { USSR: [], SSSSR: [], SSR: [], SR: [], R: [], N: [] };
+const BY_RARITY = { USSR: [], WTF: [], SSSSR: [], SSR: [], SR: [], R: [], N: [] };
 CARDS.forEach(c => BY_RARITY[c.r].push(c));
 const TAGS = ["全て", ...new Set(CARDS.map(c => c.t))];
 
@@ -522,7 +525,7 @@ const COUNTRY = {
   // 追加（2026-09-09 第3弾）
   walesa:"pl", alexander1:"ru", havel:"cz", rasputin:"ru", pavlov:"ru", pilsudski:"pl", nagy:"hu", ceausescu:"ro", kerensky:"ru", tchaikovsky:"ru", benes:"cz", dimitrov:"bg", venizelos:"gr", yeltsin:"ru", alexander2:"ru", mendeleev:"ru", makhno:"ua", bandera:"ua", shevchenko:"ua", kossuth:"hu", kadar:"hu", sikorski:"pl", gomulka:"pl", antonescu:"ro", jaruzelski:"pl", dubcek:"cz", hoxha:"xx", zhivkov:"bg", kolchak:"ru", budyonny:"ru", kornilov:"ru", tsiolkovsky:"ru", gapon:"ru", dzerzhinsky:"pl", nakhimov:"ru", vavilov:"ru", lysenko:"ua", kurchatov:"ru", zaitsev:"ru", pavlichenko:"ua", theremin:"ru", fomenko:"ru", pilecki:"pl", kosciuszko:"pl", michael1:"ro", boris3:"bg", metaxas:"gr", ulmanis:"xx", pavelic:"xx", janmasaryk:"cz", tokugawa_yoshinobu:"jp", tanaka_kakuei:"jp", yoshida_shigeru:"jp", ii_naosuke:"jp", inukai:"jp", hara_takashi:"jp", dazai:"jp", miyazawa:"jp", kurosawa:"jp", honda:"jp", matsushita:"jp", minakata:"jp", tsuda_umeko:"jp", hiratsuka:"jp", eto:"jp", sanjo:"jp", goto_shojiro:"jp", akiyama_yoshifuru:"jp", kuribayashi:"jp", shimazu_nariakira:"jp", nabeshima:"jp", kobayashi_takiji:"jp", tanizaki:"jp", okamoto_taro:"jp", tezuka:"jp", tomonaga:"jp", esaki:"jp", toyoda_sakichi:"jp", morita_akio:"jp", shirasu:"jp", john_manjiro:"jp", enomoto:"jp", kawai:"jp", aizawa:"jp", tsuji:"jp", onoda:"jp", yokoi:"jp", kanakuri:"jp", kawashima:"jp", hitomi:"jp", tsuburaya:"jp", takahashi_oden:"jp", kawakami_otojiro:"jp", miyatake:"jp", hani_motoko:"jp", ando_momofuku:"jp", tokugawa_musei:"jp", sasakawa:"jp", shiratori:"jp", mutsu:"jp", metternich:"at", freud:"at", talleyrand:"fr", marconi:"it", renault:"fr", schliemann:"de", verdi:"it", sartre:"fr", leopold2:"be", dali:"es", monet:"fr", rodin:"fr", roentgen:"de", dunant:"ch", jung:"ch", corbusier:"ch", saintexupery:"fr", chanel:"fr", golgi:"it", gramsci:"it", poincare:"fr", gaudi:"es", goya:"es", ferrari:"it", brahms:"de", diesel:"de", benz:"de", franzjoseph:"at", stein:"de", clausewitz:"de", moltke:"de", porsche:"at", klimt:"at", mach:"at", ney:"fr", fouche:"fr", maginot:"fr", dreyfus:"fr", eiffel:"fr", dior:"fr", piaget:"ch", matisse:"fr", matahari:"nl", mondrian:"nl", onnes:"nl", wilhelmina:"nl", horta:"be", sax:"be", magritte:"be", lorca:"es", franklin:"us", elizabeth2:"uk", motherteresa:"in", armstrong:"us", oppenheimer:"us", nixon:"us", nightingale:"uk", babbage:"uk", faraday:"uk", khomeini:"ir", bengurion:"il", indiragandhi:"in", evaperon:"ar", disney:"us", capone:"us", lindbergh:"us", hughes:"us", attlee:"uk", doyle:"uk", peary:"us", ibnsaud:"sa", sadat:"eg", mehmed6:"tr", suharto:"id", sukarno:"id", bose:"in", rizal:"ph", panchovilla:"mx", colt:"us", feynman:"us", taylor:"us", rockwell:"us", shackleton:"ie", collins_m:"ie", lovelace:"uk", bragg:"au", mossadegh:"ir", meir:"il", talaat:"tr", aungsan:"mm", rama5:"th", polpot:"xx", baodai:"vn", pedro2:"br", zapata:"mx", chavez:"ve", sanmartin:"ar", haileselassie:"xx", idiamin:"xx", nedkelly:"au",
   // 追加（2026-09-10 ネット有名人物）
-  putin:"ru", trump:"us", musk:"us", michaeljackson:"us", obama:"us", jobs:"us", gates:"us", hawking:"uk", billy:"us", bobross:"us", tadokoro:"jp",
+  putin:"ru", trump:"us", musk:"us", michaeljackson:"us", obama:"us", jobs:"us", gates:"us", hawking:"uk", billy:"us", bobross:"us", tadokoro:"jp", asahara:"jp",
 };
 
 
